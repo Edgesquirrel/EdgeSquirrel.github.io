@@ -6,6 +6,13 @@ media:
     rename: safe
     categories: [image]
     extensions: [jpg, jpeg, png, webp, gif]
+  - name: project-videos
+    label: Project videos
+    input: assets/uploads/videos
+    output: /assets/uploads/videos
+    rename: safe
+    categories: [video]
+    extensions: [mp4, webm, mov]
 
 content:
   - name: projects
@@ -43,6 +50,18 @@ content:
           unique: true
           extensions: [jpg, jpeg, png, webp, gif]
           rename: safe
+      - name: videos
+        label: Videos (MP4)
+        type: file
+        options:
+          media: project-videos
+          path: projects
+          multiple:
+            max: 3
+          unique: true
+          categories: [video]
+          extensions: [mp4, webm, mov]
+          rename: safe
       - name: tags
         label: Tags
         type: string
@@ -50,3 +69,4 @@ content:
       - name: link
         label: Optional video or project link
         type: string
+
