@@ -1,0 +1,52 @@
+media:
+  - name: project-images
+    label: Project photos and designs
+    input: assets/uploads
+    output: /assets/uploads
+    rename: safe
+    categories: [image]
+    extensions: [jpg, jpeg, png, webp, gif]
+
+content:
+  - name: projects
+    label: Project posts
+    type: file
+    path: content/projects.json
+    format: json
+    list: true
+    view:
+      primary: title
+      sort: date
+      order: desc
+    fields:
+      - name: title
+        label: Project name
+        type: string
+        required: true
+      - name: category
+        label: Category
+        type: string
+      - name: description
+        label: Caption / description
+        type: text
+      - name: date
+        label: Date (optional)
+        type: date
+      - name: images
+        label: Photos and designs
+        type: image
+        options:
+          media: project-images
+          path: projects
+          multiple:
+            max: 8
+          unique: true
+          extensions: [jpg, jpeg, png, webp, gif]
+          rename: safe
+      - name: tags
+        label: Tags
+        type: string
+        list: true
+      - name: link
+        label: Optional video or project link
+        type: string
