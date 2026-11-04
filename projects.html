@@ -38,6 +38,8 @@
     .media-button { position:relative; display:block; width:100%; padding:0; overflow:hidden; border:0; border-block:1px solid var(--line); background:#141321; cursor:pointer; }
     .cover { display:block; width:100%; aspect-ratio:1.12; object-fit:cover; transition:transform .35s ease; }
     .media-button:hover .cover { transform:scale(1.035); }
+    .video-preview { position:relative; overflow:hidden; border-block:1px solid var(--line); background:#08080d; }
+    .video-preview video { display:block; width:100%; aspect-ratio:1.12; object-fit:contain; background:#08080d; }
     .placeholder { display:grid; width:100%; aspect-ratio:1.12; place-items:center; overflow:hidden; background:radial-gradient(ellipse at 50% 66%,rgba(132,92,221,.3),transparent 48%),linear-gradient(145deg,#171523,#11111c); }
     .placeholder-inner { display:grid; width:76%; aspect-ratio:1.3; place-items:center; border:1px solid rgba(195,173,255,.2); border-radius:20px; background:linear-gradient(135deg,rgba(168,139,255,.08),rgba(125,228,232,.025)); color:rgba(195,173,255,.8); text-align:center; }
     .placeholder-inner b { font-size:clamp(24px,4vw,44px); letter-spacing:-.08em; }
@@ -65,11 +67,11 @@
     .dialog-head h2 { margin:0; font-size:16px; }
     .close { width:34px; height:34px; border:1px solid var(--line); border-radius:50%; background:#171725; color:var(--text); font-size:20px; cursor:pointer; }
     .dialog-copy { padding:16px 20px 4px; color:var(--muted); font-size:13px; }
-    .dialog-images { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:12px 18px 18px; }
-    .dialog-images img { display:block; width:100%; max-height:440px; aspect-ratio:1/1; object-fit:contain; border:1px solid var(--line); border-radius:12px; background:#08080d; }
+    .dialog-media { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:12px 18px 18px; }
+    .dialog-media img,.dialog-media video { display:block; width:100%; max-height:440px; aspect-ratio:1/1; object-fit:contain; border:1px solid var(--line); border-radius:12px; background:#08080d; }
     .dialog-link { display:inline-block; margin:0 20px 20px; color:var(--purple); font-size:12px; font-weight:700; }
     @media (max-width:850px) { .feed { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    @media (max-width:580px) { .shell { width:calc(100% - 32px); } .nav { min-height:65px; } .hero { padding-top:56px; } .feed { grid-template-columns:1fr; gap:13px; } .cover,.placeholder { aspect-ratio:1.18; } .feed-heading span { max-width:155px; text-align:right; } .footer { flex-direction:column; } .dialog-images { grid-template-columns:1fr; } }
+    @media (max-width:580px) { .shell { width:calc(100% - 32px); } .nav { min-height:65px; } .hero { padding-top:56px; } .feed { grid-template-columns:1fr; gap:13px; } .cover,.placeholder,.video-preview video { aspect-ratio:1.18; } .feed-heading span { max-width:155px; text-align:right; } .footer { flex-direction:column; } .dialog-media { grid-template-columns:1fr; } }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; } }
   </style>
 </head>
@@ -98,7 +100,7 @@
   <dialog id="post-dialog" aria-labelledby="dialog-title">
     <div class="dialog-head"><h2 id="dialog-title"></h2><button class="close" type="button" aria-label="Close project">×</button></div>
     <p class="dialog-copy"></p>
-    <div class="dialog-images"></div>
+    <div class="dialog-media"></div>
     <a class="dialog-link" hidden target="_blank" rel="noopener noreferrer">Open project link ↗</a>
   </dialog>
 
@@ -117,6 +119,13 @@
         return url.origin === window.location.origin ? url.href : '';
       } catch { return ''; }
     };
+    const cleanVideo = (value) => {
+      if (typeof value !== 'string' || !value.trim()) return '';
+      try {
+        const url = new URL(value, window.location.origin);
+        return url.origin === window.location.origin ? url.href : '';
+      } catch { return ''; }
+    };
     const cleanLink = (value) => {
       if (typeof value !== 'string' || !value.trim()) return '';
       try {
@@ -129,18 +138,32 @@
       const raw = Array.isArray(project.images) ? project.images : (project.images ? [project.images] : []);
       return raw.map(cleanImage).filter(Boolean);
     };
+    const videoList = (project) => {
+      const raw = Array.isArray(project.videos) ? project.videos : (project.videos ? [project.videos] : []);
+      return raw.map(cleanVideo).filter(Boolean);
+    };
     function openPost(project) {
       const images = imageList(project);
+      const videos = videoList(project);
       dialog.querySelector('#dialog-title').textContent = project.title || 'Project';
       dialog.querySelector('.dialog-copy').textContent = project.description || project.category || '';
-      const imageArea = dialog.querySelector('.dialog-images');
-      imageArea.replaceChildren();
+      const mediaArea = dialog.querySelector('.dialog-media');
+      mediaArea.replaceChildren();
       images.forEach((src, index) => {
         const image = document.createElement('img');
         image.src = src;
         image.alt = `${project.title || 'Project'} image ${index + 1}`;
         image.loading = 'lazy';
-        imageArea.append(image);
+        mediaArea.append(image);
+      });
+      videos.forEach((src, index) => {
+        const video = document.createElement('video');
+        video.src = src;
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = 'metadata';
+        video.setAttribute('aria-label', `${project.title || 'Project'} video ${index + 1}`);
+        mediaArea.append(video);
       });
       const link = dialog.querySelector('.dialog-link');
       const safeLink = cleanLink(project.link);
@@ -150,6 +173,7 @@
     }
     function postCard(project) {
       const images = imageList(project);
+      const videos = videoList(project);
       const cover = images[0];
       const title = escapeHtml(project.title || 'Untitled project');
       const category = escapeHtml(project.category || 'Project');
@@ -161,15 +185,21 @@
         ? `<img class="cover" src="${escapeHtml(cover)}" alt="${title}" loading="lazy" decoding="async">`
         : `<div class="placeholder"><div class="placeholder-inner"><div><b>ES</b><br><span>${category}</span></div></div></div>`;
       const tagMarkup = tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
-      const count = images.length > 1 ? `<span class="image-count">▧ ${images.length} photos</span>` : '';
+      const mediaCount = images.length + videos.length;
+      const count = mediaCount > 1 ? `<span class="image-count">▧ ${images.length} photos · ${videos.length} videos</span>` : '';
+      const mediaMarkup = cover
+        ? `<button class="media-button" type="button" aria-label="Open ${title} project post">${photo}${count}</button>`
+        : videos[0]
+          ? `<div class="video-preview"><video controls playsinline preload="metadata" aria-label="Play ${title}" src="${escapeHtml(videos[0])}"></video>${count}</div>`
+          : `<button class="media-button" type="button" aria-label="Open ${title} project post">${photo}</button>`;
       const linkMarkup = safeLink ? `<a class="project-link" href="${escapeHtml(safeLink)}" target="_blank" rel="noopener noreferrer">Project link ↗</a>` : '';
       const article = document.createElement('article');
       article.className = 'post';
       article.innerHTML = `
         <div class="post-top"><span class="avatar" aria-hidden="true">ES</span><div class="post-user"><strong>EdgeSquirrel</strong><span>${category}</span></div>${date ? `<time class="post-date">${escapeHtml(date)}</time>` : ''}</div>
-        <button class="media-button" type="button" aria-label="Open ${title} project post">${photo}${count}</button>
+        ${mediaMarkup}
         <div class="post-content"><div class="post-title-row"><h2>${title}</h2><span class="category">${category}</span></div><p class="caption">${caption}</p>${tagMarkup ? `<div class="tags">${tagMarkup}</div>` : ''}<div class="post-actions"><button class="view-post" type="button">View post →</button>${linkMarkup}</div></div>`;
-      article.querySelector('.media-button').addEventListener('click', () => openPost(project));
+      article.querySelector('.media-button')?.addEventListener('click', () => openPost(project));
       article.querySelector('.view-post').addEventListener('click', () => openPost(project));
       return article;
     }
@@ -194,3 +224,4 @@
   </script>
 </body>
 </html>
+
