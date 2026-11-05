@@ -37,6 +37,20 @@
     "images": [
       "/assets/uploads/screenshot-2026-11-05-165023.png"
     ],
+    "tags": [
+      "Unreal Engine",
+      "Transport System"
+    ],
     "link": "https://youtu.be/r01ykFPNktk"
+  },
+  {
+    "title": "Duel Monster Game ",
+    "category": "C++ Project - Gameplay - Coding",
+    "description": "An early look at my Duel Monsters project, which I’m developing in Unreal Engine using C++. The project is still in progress, so the gameplay and features shown may change as I continue working on it.",
+    "date": "2026-07-31",
+    "images": [
+      "/assets/uploads/screenshot-2026-11-05-175416.png"
+    ],
+    "link": "https://youtu.be/FHDSvkuHjF8"
   }
 ]
