@@ -100,7 +100,7 @@
     .section-kicker { margin-bottom: 10px; color: var(--purple-bright); font-size: 10px; font-weight: 750; letter-spacing: .17em; text-transform: uppercase; }
     h2 { margin-bottom: 0; font-size: clamp(32px, 4vw, 48px); line-height: 1.06; letter-spacing: -.06em; }
     .section-intro { max-width: 430px; margin: 0; color: var(--muted); font-size: 14px; }
-    .project-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 16px; }
     .gallery-more { display: flex; justify-content: center; margin-top: 24px; }
     .project-card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(160deg, rgba(255,255,255,.035), rgba(255,255,255,.012)); transition: transform .2s ease, border-color .2s ease; }
     .project-card:hover { transform: translateY(-4px); border-color: rgba(195,173,255,.34); }
@@ -111,6 +111,10 @@
     .project-visual.city { background: radial-gradient(ellipse at 50% 68%, rgba(132,92,221,.28), transparent 44%), #13121f; }
     .project-visual.zombies { background: radial-gradient(ellipse at 50% 80%, rgba(48,160,137,.23), transparent 42%), #111b1a; }
     .project-visual.more { background: radial-gradient(ellipse at 50% 50%, rgba(79,131,192,.2), transparent 48%), #121722; }
+    .project-visual.has-media::before, .project-visual.has-media::after { display: none; }
+    .project-cover { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .project-preview-video { background: #08080c; }
+    .project-loading { grid-column: 1 / -1; margin: 0; padding: 22px; border: 1px dashed var(--line); border-radius: var(--radius); color: var(--muted); text-align: center; }
     .visual-glyph { position: relative; z-index: 1; display: grid; width: 66px; height: 66px; place-items: center; border: 1px solid rgba(255,255,255,.25); border-radius: 20px; background: rgba(12,12,20,.64); color: var(--purple-bright); box-shadow: 0 12px 40px rgba(0,0,0,.28); }
     .visual-glyph svg { width: 29px; height: 29px; }
     .zombies .visual-glyph { color: #8ce0c4; }
@@ -128,6 +132,12 @@
     .about-copy p:last-child { margin-bottom: 0; }
     .skill-grid { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 25px; }
     .skill { padding: 9px 12px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.025); color: #d5d1e2; font-size: 11px; }
+    .certification-card { display: flex; align-items: center; gap: 20px; margin-top: 30px; padding: 18px; border: 1px solid rgba(230,197,91,.32); border-radius: 20px; background: radial-gradient(ellipse at 0% 50%, rgba(168,139,255,.13), transparent 48%), linear-gradient(120deg, rgba(255,255,255,.035), rgba(255,255,255,.012)); }
+    .certification-seal { display: block; flex: 0 0 108px; width: 108px; height: 108px; filter: drop-shadow(0 8px 18px rgba(0,0,0,.28)); }
+    .certification-copy { min-width: 0; }
+    .certification-kicker { margin: 0 0 7px; color: #e6c55b; font-size: 10px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+    .certification-copy h3 { margin: 0 0 8px; font-size: clamp(18px, 2vw, 23px); line-height: 1.15; letter-spacing: -.04em; }
+    .certification-copy p:last-child { margin: 0; color: var(--muted); font-size: 13px; }
 
     .contact { padding-block: 76px; }
     .contact-card { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 30px; overflow: hidden; padding: clamp(27px, 5vw, 54px); border: 1px solid rgba(195,173,255,.25); border-radius: 28px; background: radial-gradient(ellipse at 100% 0%, rgba(168,139,255,.2), transparent 48%), linear-gradient(120deg, #171523, #11111a 70%); }
@@ -146,9 +156,6 @@
       .hero-copy { max-width: 690px; }
       .hero-art { min-height: 0; }
       .art-frame { width: min(100%, 580px); }
-      .project-grid { grid-template-columns: repeat(2, 1fr); }
-      .project-card:last-child { grid-column: 1 / -1; }
-      .project-card:last-child .project-visual { min-height: 175px; }
     }
     @media (max-width: 600px) {
       .shell { width: min(var(--max), calc(100% - 32px)); }
@@ -167,11 +174,11 @@
       .section { padding-block: 65px; }
       .section-head { display: block; }
       .section-intro { margin-top: 14px; }
-      .project-grid { grid-template-columns: 1fr; }
-      .project-card:last-child { grid-column: auto; }
-      .project-visual, .project-card:last-child .project-visual { min-height: 190px; }
+      .project-visual { min-height: 190px; }
       .project-content p { min-height: auto; }
       .about-grid { grid-template-columns: 1fr; gap: 22px; }
+      .certification-card { align-items: flex-start; gap: 14px; padding: 15px; }
+      .certification-seal { flex-basis: 82px; width: 82px; height: 82px; }
       .contact-card { display: block; }
       .contact-action { margin-top: 24px; }
       .site-footer { align-items: flex-start; flex-direction: column; }
@@ -262,34 +269,8 @@
           </div>
           <p class="section-intro">Game development, environments, and rendered scenes. More projects and designs are collected in the full gallery.</p>
         </div>
-        <div class="project-grid">
-          <article class="project-card">
-            <div class="project-visual city" aria-hidden="true"><span class="visual-glyph"><svg viewBox="0 0 24 24" fill="none"><path d="m3 10 9-7 9 7v10H3V10Z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h8v6M7 10h.01M12 10h.01M17 10h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></div>
-            <div class="project-content">
-              <p class="project-meta">Gameplay · Environment</p>
-              <h3>Skills City</h3>
-              <p>A look at my Skills City work through gameplay and a final rendered video.</p>
-              <a class="text-link" href="projects.html">View project gallery <span aria-hidden="true">↗</span></a>
-            </div>
-          </article>
-          <article class="project-card">
-            <div class="project-visual zombies" aria-hidden="true"><span class="visual-glyph"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3a8 8 0 0 0-4 14.93V21h8v-3.07A8 8 0 0 0 12 3Z" stroke="currentColor" stroke-width="1.5"/><path d="M9 10h.01M15 10h.01M9 14c1.8 1.2 4.2 1.2 6 0M10 18h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></div>
-            <div class="project-content">
-              <p class="project-meta">Animation · Final render</p>
-              <h3>Dancing Zombies</h3>
-              <p>A rendered scene from my Dancing Zombies project, made in Unreal Engine.</p>
-              <a class="text-link" href="projects.html">View project gallery <span aria-hidden="true">↗</span></a>
-            </div>
-          </article>
-          <article class="project-card">
-            <div class="project-visual more" aria-hidden="true"><span class="visual-glyph"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19.5V5.8c0-.7.6-1.3 1.3-1.3H20v13.7H5.3c-.7 0-1.3.6-1.3 1.3Zm0 0c0-.7.6-1.3 1.3-1.3H20M8 8h8M8 11h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-            <div class="project-content">
-              <p class="project-meta">More projects · Experiments</p>
-              <h3>Designs &amp; projects</h3>
-              <p>Browse more of my game development and graphic design work.</p>
-              <a class="text-link" href="projects.html">Open the full gallery <span aria-hidden="true">↗</span></a>
-            </div>
-          </article>
+        <div class="project-grid" id="homepage-project-grid" aria-live="polite">
+          <p class="project-loading">Loading project posts…</p>
         </div>
         <div class="gallery-more">
           <a class="button button-secondary" href="projects.html">Browse all projects <span aria-hidden="true">→</span></a>
@@ -308,6 +289,24 @@
           <p>I’m always learning, building, and sharing the journey. Here are some of the tools and parts of game development I enjoy working with.</p>
           <div class="skill-grid" aria-label="Skills">
             <span class="skill">Game system design</span><span class="skill">Level design</span><span class="skill">Landscape &amp; environments</span><span class="skill">Animation</span><span class="skill">Niagara systems</span><span class="skill">Materials &amp; textures</span><span class="skill">Blueprint scripting</span><span class="skill">Fault finding &amp; debugging</span><span class="skill">3D modelling</span>
+          </div>
+          <div class="certification-card" role="group" aria-label="Skills City Level 3 Unreal Engine Beginner Bootcamp certification">
+            <svg class="certification-seal" viewBox="0 0 160 160" role="img" aria-labelledby="cert-seal-title cert-seal-desc">
+              <title id="cert-seal-title">Level 3 Skills City certification badge</title>
+              <desc id="cert-seal-desc">A purple and gold illustrated seal for the Unreal Engine Beginner Bootcamp.</desc>
+              <circle cx="80" cy="80" r="75" fill="#43217f" stroke="#e6c55b" stroke-width="5"/>
+              <circle cx="80" cy="80" r="62" fill="#fffdf6" stroke="#f0df94" stroke-width="3"/>
+              <path d="M80 32l4.6 9.3 10.3 1.5-7.45 7.25 1.76 10.25L80 53.45l-9.21 4.85 1.76-10.25-7.45-7.25 10.3-1.5L80 32Z" fill="#e6c55b"/>
+              <text x="80" y="79" text-anchor="middle" fill="#43217f" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="2">SKILLS CITY</text>
+              <text x="80" y="111" text-anchor="middle" fill="#43217f" font-family="Arial,sans-serif" font-size="27" font-weight="800">LEVEL 3</text>
+              <path d="M48 123h64l-7 17-25-8-25 8-7-17Z" fill="#e6c55b"/>
+              <text x="80" y="135" text-anchor="middle" fill="#261344" font-family="Arial,sans-serif" font-size="9" font-weight="700" letter-spacing="1">UNREAL ENGINE</text>
+            </svg>
+            <div class="certification-copy">
+              <p class="certification-kicker">Certification</p>
+              <h3>Certified Junior Unreal Developer</h3>
+              <p>Skills City · Unreal Engine Beginner Bootcamp · Level 3</p>
+            </div>
           </div>
         </div>
       </div>
@@ -337,6 +336,9 @@
     </div>
   </footer>
   <script>
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[character]);
     const safeProjectMedia = (value) => {
       if (typeof value !== 'string' || !value.trim()) return '';
       try {
@@ -344,14 +346,36 @@
         return url.origin === window.location.origin ? url.href : '';
       } catch { return ''; }
     };
+    const projectMediaValues = (value) => Array.isArray(value) ? value : (value ? [value] : []);
+    const projectVisual = (project, title) => {
+      const images = projectMediaValues(project.images).map(safeProjectMedia).filter(Boolean);
+      const videos = projectMediaValues(project.videos).map(safeProjectMedia).filter(Boolean);
+      if (images.length) return `<div class="project-visual has-media"><img class="project-cover" src="${escapeHtml(images[0])}" alt="${escapeHtml(title)} project image" loading="lazy"></div>`;
+      if (videos.length) return `<div class="project-visual has-media"><video class="project-cover project-preview-video" controls preload="metadata" aria-label="Video for ${escapeHtml(title)}"><source src="${escapeHtml(videos[0])}"></video></div>`;
+      return `<div class="project-visual city" aria-hidden="true"><span class="visual-glyph"><svg viewBox="0 0 24 24" fill="none"><path d="m3 10 9-7 9 7v10H3V10Z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h8v6M7 10h.01M12 10h.01M17 10h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></div>`;
+    };
     (async () => {
+      const projectGrid = document.getElementById('homepage-project-grid');
       try {
         const response = await fetch('content/projects.json', { cache: 'no-store' });
-        if (!response.ok) return;
+        if (!response.ok) throw new Error('Project list could not be loaded');
         const projects = await response.json();
-        if (!Array.isArray(projects) || !projects.length) return;
-        const sorted = projects.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
-        const current = sorted.find((project) => project.featured) || sorted[0];
+        if (!Array.isArray(projects) || !projects.length) {
+          projectGrid.innerHTML = '<p class="project-loading">Your project posts will appear here after you add them in Pages CMS.</p>';
+          return;
+        }
+        const sorted = projects.filter((project) => project && typeof project === 'object').slice().sort((a, b) => (Date.parse(b.date || '') || 0) - (Date.parse(a.date || '') || 0));
+        if (!sorted.length) {
+          projectGrid.innerHTML = '<p class="project-loading">Your project posts will appear here after you add them in Pages CMS.</p>';
+          return;
+        }
+        projectGrid.innerHTML = sorted.map((project) => {
+          const title = typeof project.title === 'string' && project.title.trim() ? project.title.trim() : 'Untitled project';
+          const category = typeof project.category === 'string' && project.category.trim() ? project.category.trim() : 'Project';
+          const description = typeof project.description === 'string' && project.description.trim() ? project.description.trim() : 'See the full project post for more details.';
+          return `<article class="project-card">${projectVisual(project, title)}<div class="project-content"><p class="project-meta">${escapeHtml(category)}</p><h3>${escapeHtml(title)}</h3><p>${escapeHtml(description)}</p><a class="text-link" href="projects.html">View project <span aria-hidden="true">↗</span></a></div></article>`;
+        }).join('');
+        const current = sorted[0];
         const title = typeof current.title === 'string' && current.title.trim() ? current.title.trim() : 'Latest project';
         const category = typeof current.category === 'string' && current.category.trim() ? current.category.trim() : 'EDGE / CURRENT';
         document.getElementById('heroProjectTitle').textContent = title;
@@ -379,9 +403,10 @@
           video.load();
         }
       } catch {
-        // Keep the built-in illustration if the project list is unavailable.
+        projectGrid.innerHTML = '<p class="project-loading">Projects could not be loaded right now. Open the full gallery to see your work.</p>';
       }
     })();
   </script>
 </body>
 </html>
+
