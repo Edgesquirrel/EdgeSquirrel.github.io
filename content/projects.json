@@ -3,18 +3,27 @@
     "title": "Skills City",
     "category": "Gameplay · Environment",
     "description": "A look at my Skills City work through gameplay and a final rendered video.",
-    "date": "",
-    "images": [],
-    "tags": ["Unreal Engine", "Environment"],
-    "link": ""
+    "date": "2026-11-05",
+    "images": [
+      "/assets/uploads/skillscity-1.png",
+      "/assets/uploads/screenshot2025-07-08230122.png",
+      "/assets/uploads/screenshot2025-07-08230134.png",
+      "/assets/uploads/screenshot2025-07-08225756-1.png"
+    ],
+    "tags": [
+      "Unreal Engine",
+      "Environment"
+    ],
+    "link": "https://www.youtube.com/watch?v=OUcth71L_JM"
   },
   {
     "title": "Dancing Zombies",
     "category": "Animation · Final render",
     "description": "A rendered scene from my Dancing Zombies project, made in Unreal Engine.",
-    "date": "",
-    "images": [],
-    "tags": ["Unreal Engine", "Animation"],
-    "link": ""
+    "date": "2026-11-05",
+    "tags": [
+      "Unreal Engine",
+      "Animation"
+    ]
   }
 ]
