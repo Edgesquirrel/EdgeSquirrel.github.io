@@ -20,6 +20,9 @@
     "category": "Animation · Final render",
     "description": "A rendered scene from my Dancing Zombies project, made in Unreal Engine.",
     "date": "2025-07-31",
+    "images": [
+      "/assets/uploads/screenshot-2026-11-05-165133.png"
+    ],
     "tags": [
       "Unreal Engine",
       "Animation"
@@ -31,6 +34,9 @@
     "category": "Gameplay · Transportation System",
     "description": "In this video, I showcase the Train and Tram System I created for CGHERO, with a walkthrough of the project in Unreal Engine.\n\nCreated by Tony Edgington, also known as EdgeSquirrel.",
     "date": "2025-09-25",
+    "images": [
+      "/assets/uploads/screenshot-2026-11-05-165023.png"
+    ],
     "link": "https://youtu.be/r01ykFPNktk"
   }
 ]
