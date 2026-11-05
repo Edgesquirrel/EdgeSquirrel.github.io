@@ -1,0 +1,71 @@
+name: Update Twitch badge and publish site
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  refresh-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Get the website files
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check whether the Twitch channel is live
+        env:
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          TWITCH_LOGIN: edgesquirrell
+        run: node scripts/update-twitch-status.mjs
+
+      - name: Save a changed Twitch status
+        id: status
+        run: |
+          if git diff --quiet -- content/twitch-status.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Twitch status did not change."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add content/twitch-status.json
+            git commit -m "Update Twitch live badge"
+            git push origin HEAD:main
+          fi
+
+      - name: Set up GitHub Pages
+        if: github.event_name != 'schedule' || steps.status.outputs.changed == 'true'
+        uses: actions/configure-pages@v5
+
+      - name: Package the website
+        if: github.event_name != 'schedule' || steps.status.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+
+      - name: Publish the website
+        if: github.event_name != 'schedule' || steps.status.outputs.changed == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
