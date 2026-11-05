@@ -95,6 +95,26 @@
     .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
     .art-index { position: absolute; top: 21px; right: 22px; color: rgba(255,255,255,.5); font-size: 10px; letter-spacing: .12em; }
 
+    .live-section { padding: 0 0 46px; }
+    .live-card { position: relative; display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 22px; min-height: 142px; overflow: hidden; padding: 18px 24px; border: 1px solid rgba(145,70,255,.32); border-radius: 22px; background: radial-gradient(ellipse at 8% 50%, rgba(145,70,255,.2), transparent 34%), linear-gradient(115deg, #171323, #101018 72%); color: var(--text); text-decoration: none; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+    .live-card:hover { transform: translateY(-2px); border-color: rgba(168,139,255,.72); box-shadow: 0 12px 48px rgba(101,53,190,.16); }
+    .live-card[data-state="live"] { border-color: rgba(255,70,145,.72); background: radial-gradient(ellipse at 7% 50%, rgba(145,70,255,.3), transparent 38%), radial-gradient(ellipse at 92% 50%, rgba(255,55,126,.13), transparent 36%), #121019; box-shadow: 0 0 34px rgba(145,70,255,.14); }
+    .live-art { position: relative; display: grid; width: 100px; height: 100px; place-items: center; }
+    .live-twitch-mark { position: absolute; top: 1px; right: 0; width: 78px; height: 78px; color: #9146ff; opacity: .82; filter: drop-shadow(0 0 15px rgba(145,70,255,.5)); }
+    .live-mascot { position: absolute; z-index: 1; bottom: 0; left: 0; width: 90px; height: 90px; object-fit: contain; filter: drop-shadow(0 0 13px rgba(168,139,255,.42)); }
+    .live-card[data-state="live"] .live-mascot { filter: drop-shadow(0 0 18px rgba(255,70,145,.8)); }
+    .live-copy { min-width: 0; }
+    .live-status { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 8px; color: #bdb6d3; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .live-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #777184; box-shadow: 0 0 0 4px rgba(119,113,132,.12); }
+    .live-card[data-state="live"] .live-status { color: #ff8ab8; }
+    .live-card[data-state="live"] .live-status-dot { background: #ff438d; box-shadow: 0 0 0 4px rgba(255,67,141,.15), 0 0 15px #ff438d; animation: live-pulse 1.5s ease-in-out infinite; }
+    .live-copy h2 { margin: 0 0 7px; font-size: clamp(20px, 3vw, 29px); letter-spacing: -.045em; }
+    .live-copy p:last-child { margin: 0; color: var(--muted); font-size: 13px; }
+    .live-action { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 13px 16px; border: 1px solid rgba(168,139,255,.35); border-radius: 999px; background: rgba(145,70,255,.13); color: #e8dcff; font-size: 11px; font-weight: 800; letter-spacing: .06em; white-space: nowrap; }
+    .live-action svg { width: 17px; height: 17px; }
+    .live-card[data-state="live"] .live-action { border-color: rgba(255,95,157,.55); background: linear-gradient(100deg, #9146ff, #dc3d95); color: #fff; box-shadow: 0 0 25px rgba(222,61,149,.32); }
+    @keyframes live-pulse { 50% { opacity: .5; transform: scale(.82); } }
+
     .section { padding-block: 82px; border-top: 1px solid var(--line); }
     .section-head { display: flex; align-items: end; justify-content: space-between; gap: 30px; margin-bottom: 30px; }
     .section-kicker { margin-bottom: 10px; color: var(--purple-bright); font-size: 10px; font-weight: 750; letter-spacing: .17em; text-transform: uppercase; }
@@ -171,6 +191,12 @@
       .art-label-top { top: 14px; left: 14px; }
       .art-label-bottom { right: 12px; bottom: 12px; }
       .art-index { top: 14px; right: 15px; }
+      .live-section { padding-bottom: 34px; }
+      .live-card { grid-template-columns: 74px minmax(0, 1fr); gap: 13px; padding: 16px; }
+      .live-art { width: 72px; height: 72px; }
+      .live-twitch-mark { width: 58px; height: 58px; }
+      .live-mascot { width: 68px; height: 68px; }
+      .live-action { grid-column: 1 / -1; width: 100%; padding: 12px; }
       .section { padding-block: 65px; }
       .section-head { display: block; }
       .section-intro { margin-top: 14px; }
@@ -260,6 +286,23 @@
       </div>
     </section>
 
+    <section class="live-section" aria-label="EdgeSquirrel on Twitch">
+      <div class="shell">
+        <a class="live-card" id="twitch-live-card" data-state="unknown" href="https://www.twitch.tv/edgesquirrell" target="_blank" rel="noopener noreferrer" aria-live="polite" aria-label="Visit EdgeSquirrel on Twitch">
+          <div class="live-art" aria-hidden="true">
+            <svg class="live-twitch-mark" viewBox="0 0 48 48" fill="none"><path d="M7 5h36v27l-9 9h-9l-6 6v-6H7V10l0-5Z" fill="currentColor"/><path d="M18 15v12M31 15v12" stroke="#fff" stroke-width="4" stroke-linecap="square"/></svg>
+            <img class="live-mascot" src="assets/uploads/edgesquirrel-emote-112.png" alt="">
+          </div>
+          <div class="live-copy">
+            <p class="live-status"><span class="live-status-dot" aria-hidden="true"></span><span id="twitch-live-status">CHECKING TWITCH</span></p>
+            <h2 id="twitch-live-title">Find me on Twitch</h2>
+            <p id="twitch-live-detail">When I’m live, this badge lights up. Click to visit my channel.</p>
+          </div>
+          <span class="live-action"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 3h18v12l-5 5h-4l-3 3v-3H5V6L4 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 8v5M16 8v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="twitch-live-action">VISIT MY TWITCH</span></span>
+        </a>
+      </div>
+    </section>
+
     <section class="section" id="work" aria-labelledby="work-title">
       <div class="shell">
         <div class="section-head">
@@ -331,11 +374,55 @@
     <span>© EdgeSquirrel · Made with curiosity.</span>
     <div class="footer-links" aria-label="Social links">
       <a href="https://www.twitch.tv/edgesquirrell" target="_blank" rel="noopener noreferrer">Twitch</a>
-      <a href="https://www.youtube.com/channel/UCmi02kIryStoYbrJhd0S6og" target="_blank" rel="noopener noreferrer">YouTube</a>
-      <a href="https://www.linkedin.com/in/tony-edgington-49431836a/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href="https://www.youtube.com/@EdgeSquirrelDesigns" target="_blank" rel="noopener noreferrer">YouTube</a>
+      <a href="https://www.linkedin.com/in/edgesquirreldesigns" target="_blank" rel="noopener noreferrer">LinkedIn</a>
     </div>
   </footer>
   <script>
+    (async () => {
+      const card = document.getElementById('twitch-live-card');
+      const status = document.getElementById('twitch-live-status');
+      const title = document.getElementById('twitch-live-title');
+      const detail = document.getElementById('twitch-live-detail');
+      const action = document.getElementById('twitch-live-action');
+      const refreshTwitchStatus = async () => {
+        try {
+          const response = await fetch(`content/twitch-status.json?v=${Date.now()}`, { cache: 'no-store' });
+          if (!response.ok) throw new Error('Twitch status is not set up yet');
+          const stream = await response.json();
+          if (stream.is_live === true) {
+            card.dataset.state = 'live';
+            status.textContent = 'LIVE NOW';
+            title.textContent = 'I’m live on Twitch!';
+            detail.textContent = [stream.game, stream.title].filter((value) => typeof value === 'string' && value.trim()).join(' · ') || 'Come say hello and watch the stream.';
+            action.textContent = 'CLICK HERE — I’M LIVE NOW!';
+            card.setAttribute('aria-label', 'Tony is live now. Click to watch EdgeSquirrel on Twitch.');
+          } else if (stream.is_live === false) {
+            card.dataset.state = 'offline';
+            status.textContent = 'OFFLINE RIGHT NOW';
+            title.textContent = 'Catch the next stream';
+            detail.textContent = 'Follow EdgeSquirrel on Twitch for live game streams and creative sessions.';
+            action.textContent = 'VISIT MY TWITCH';
+            card.setAttribute('aria-label', 'Visit EdgeSquirrel on Twitch and follow for future streams.');
+          } else {
+            card.dataset.state = 'unknown';
+            status.textContent = 'ON TWITCH';
+            title.textContent = 'Find me on Twitch';
+            detail.textContent = 'Visit my channel for live streams, clips and game nights.';
+            action.textContent = 'VISIT MY TWITCH';
+          }
+        } catch {
+          card.dataset.state = 'unknown';
+          status.textContent = 'ON TWITCH';
+          title.textContent = 'Find me on Twitch';
+          detail.textContent = 'Visit my channel for live streams, clips and game nights.';
+          action.textContent = 'VISIT MY TWITCH';
+        }
+      };
+      await refreshTwitchStatus();
+      window.setInterval(refreshTwitchStatus, 60000);
+    })();
+
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     })[character]);
@@ -409,4 +496,3 @@
   </script>
 </body>
 </html>
-
