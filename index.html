@@ -84,7 +84,11 @@
     .hero-art { position: relative; min-height: 390px; display: grid; place-items: center; isolation: isolate; }
     .art-frame { position: relative; width: min(100%, 475px); aspect-ratio: 1.08; overflow: hidden; border: 1px solid rgba(195,173,255,.23); border-radius: 28px; background: #11111c; box-shadow: 0 25px 90px rgba(0,0,0,.42), 0 0 60px rgba(112,75,202,.12); }
     .art-frame::after { position: absolute; inset: 0; content: ""; pointer-events: none; background: linear-gradient(120deg, rgba(255,255,255,.06), transparent 28%, transparent 72%, rgba(195,173,255,.06)); }
-    .art-frame svg { display: block; width: 100%; height: 100%; }
+    .art-frame svg, .hero-project-media { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+    .art-frame svg { z-index: 0; }
+    .hero-project-media { z-index: 0; object-fit: cover; background: #08080d; }
+    .hero-project-video { object-fit: contain; }
+    [hidden] { display: none !important; }
     .art-label { position: absolute; z-index: 1; display: flex; align-items: center; gap: 9px; padding: 10px 13px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; background: rgba(12,12,20,.76); color: #e5e1f0; font-size: 10px; font-weight: 700; letter-spacing: .09em; backdrop-filter: blur(12px); }
     .art-label-top { top: 22px; left: 22px; }
     .art-label-bottom { right: 20px; bottom: 20px; color: var(--cyan); }
@@ -210,9 +214,9 @@
 
       <div class="hero-art" aria-label="Abstract glowing game world illustration">
         <div class="art-frame">
-          <div class="art-label art-label-top"><span class="status-dot" aria-hidden="true"></span> CREATIVE MODE</div>
-          <div class="art-index">EDGE / 001</div>
-          <svg viewBox="0 0 540 500" role="img" aria-labelledby="world-title world-desc" preserveAspectRatio="xMidYMid slice">
+          <div class="art-label art-label-top"><span class="status-dot" aria-hidden="true"></span> <span>CURRENT PROJECT</span></div>
+          <div class="art-index" id="heroProjectCategory">EDGE / 001</div>
+          <svg id="heroFallbackArtwork" viewBox="0 0 540 500" role="img" aria-labelledby="world-title world-desc" preserveAspectRatio="xMidYMid slice">
             <title id="world-title">A glowing digital landscape</title>
             <desc id="world-desc">A violet planet floats above a luminous, wireframe horizon.</desc>
             <defs>
@@ -242,7 +246,9 @@
               <path d="M69 292c20-14 37-17 59-13m294-4c20-11 38-12 58-5" fill="none" stroke="#91dfe1" stroke-opacity=".5" stroke-width="1.5" stroke-linecap="round"/>
             </g>
           </svg>
-          <div class="art-label art-label-bottom"><span aria-hidden="true">✦</span> WORLDS IN PROGRESS</div>
+          <img id="heroProjectImage" class="hero-project-media" alt="" hidden>
+          <video id="heroProjectVideo" class="hero-project-media hero-project-video" controls playsinline preload="metadata" hidden></video>
+          <div class="art-label art-label-bottom"><span aria-hidden="true">✦</span> <span id="heroProjectTitle">LATEST PROJECT</span></div>
         </div>
       </div>
     </section>
@@ -330,6 +336,52 @@
       <a href="https://www.linkedin.com/in/tony-edgington-49431836a/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
     </div>
   </footer>
+  <script>
+    const safeProjectMedia = (value) => {
+      if (typeof value !== 'string' || !value.trim()) return '';
+      try {
+        const url = new URL(value, window.location.origin);
+        return url.origin === window.location.origin ? url.href : '';
+      } catch { return ''; }
+    };
+    (async () => {
+      try {
+        const response = await fetch('content/projects.json', { cache: 'no-store' });
+        if (!response.ok) return;
+        const projects = await response.json();
+        if (!Array.isArray(projects) || !projects.length) return;
+        const sorted = projects.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        const current = sorted.find((project) => project.featured) || sorted[0];
+        const title = typeof current.title === 'string' && current.title.trim() ? current.title.trim() : 'Latest project';
+        const category = typeof current.category === 'string' && current.category.trim() ? current.category.trim() : 'EDGE / CURRENT';
+        document.getElementById('heroProjectTitle').textContent = title;
+        document.getElementById('heroProjectCategory').textContent = category;
+        const fallback = document.getElementById('heroFallbackArtwork');
+        const image = document.getElementById('heroProjectImage');
+        const video = document.getElementById('heroProjectVideo');
+        const imageValues = Array.isArray(current.images) ? current.images : (current.images ? [current.images] : []);
+        const videoValues = Array.isArray(current.videos) ? current.videos : (current.videos ? [current.videos] : []);
+        const imageUrl = imageValues.map(safeProjectMedia).find(Boolean);
+        const videoUrl = videoValues.map(safeProjectMedia).find(Boolean);
+        if (imageUrl) {
+          image.alt = `${title}${current.description ? ` — ${current.description}` : ''}`;
+          image.addEventListener('load', () => {
+            image.hidden = false;
+            fallback.hidden = true;
+          }, { once: true });
+          image.src = imageUrl;
+        } else if (videoUrl) {
+          video.addEventListener('loadeddata', () => {
+            video.hidden = false;
+            fallback.hidden = true;
+          }, { once: true });
+          video.src = videoUrl;
+          video.load();
+        }
+      } catch {
+        // Keep the built-in illustration if the project list is unavailable.
+      }
+    })();
+  </script>
 </body>
 </html>
-
