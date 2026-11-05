@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b12">
+  <meta name="description" content="Hatch a monster, train it over three weeks, and battle a rival in week four.">
+  <title>Hatch &amp; Battle | EdgeSquirrel</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0b12;
+      --panel: #13121c;
+      --panel-light: #191725;
+      --text: #f4f2fa;
+      --muted: #aaa6bc;
+      --line: rgba(255,255,255,.11);
+      --purple: #a88bff;
+      --purple-deep: #714bd2;
+      --cyan: #7de4e8;
+      --gold: #e9c96b;
+      --pink: #ff83ad;
+      --green: #74e2b4;
+      --radius: 22px;
+      --max: 1160px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(112,75,202,.16), transparent 38%),
+        radial-gradient(ellipse at 100% 40%, rgba(48,115,132,.08), transparent 36%),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; }
+    [hidden] { display: none !important; }
+    .shell { width: min(var(--max), calc(100% - 44px)); margin-inline: auto; }
+    .topbar { border-bottom: 1px solid var(--line); background: rgba(11,11,18,.84); }
+    .nav { min-height: 74px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 750; letter-spacing: .02em; }
+    .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid rgba(195,173,255,.35); border-radius: 12px; background: linear-gradient(145deg, #2b2050, #14121f); color: #d7c7ff; font-size: 11px; }
+    .nav-links { display: flex; align-items: center; gap: 20px; }
+    .nav-links a { color: var(--muted); font-size: 12px; text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links .home-link { padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); }
+    .game-hero { display: flex; align-items: end; justify-content: space-between; gap: 30px; padding-block: 56px 35px; }
+    .eyebrow { margin: 0 0 12px; color: var(--purple); font-size: 10px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+    h1 { max-width: 720px; margin: 0; font-size: clamp(39px, 7vw, 76px); line-height: .98; letter-spacing: -.075em; }
+    h1 span { color: var(--purple); }
+    .hero-copy { max-width: 640px; margin: 17px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .hero-note { flex: 0 0 auto; max-width: 230px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.025); color: #c7c2d8; font-size: 11px; line-height: 1.6; }
+    .game-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, .72fr); gap: 18px; align-items: start; padding-bottom: 64px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(155deg, rgba(255,255,255,.045), rgba(255,255,255,.012)); box-shadow: 0 22px 65px rgba(0,0,0,.18); }
+    .arena { overflow: hidden; }
+    .arena-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 19px 22px; border-bottom: 1px solid var(--line); }
+    .level-block { display: flex; align-items: baseline; gap: 10px; }
+    .level-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+    .level-number { color: var(--gold); font-size: 21px; font-weight: 800; }
+    .week-pill { padding: 8px 12px; border: 1px solid rgba(168,139,255,.25); border-radius: 999px; background: rgba(168,139,255,.09); color: #d7c7ff; font-size: 10px; font-weight: 750; letter-spacing: .1em; }
+    .week-roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 18px 22px 0; }
+    .week-step { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 9px 10px; border: 1px solid transparent; border-radius: 12px; color: #777286; background: rgba(255,255,255,.018); font-size: 10px; }
+    .week-step-num { display: grid; flex: 0 0 22px; width: 22px; height: 22px; place-items: center; border: 1px solid var(--line); border-radius: 50%; font-size: 9px; font-weight: 800; }
+    .week-step.active { border-color: rgba(168,139,255,.35); background: rgba(168,139,255,.1); color: #e3d8ff; }
+    .week-step.active .week-step-num { border-color: var(--purple); background: rgba(168,139,255,.18); color: #fff; }
+    .week-step.complete { color: #9fe5cc; }
+    .week-step.complete .week-step-num { border-color: rgba(116,226,180,.55); background: rgba(116,226,180,.13); color: var(--green); }
+    .monster-stage { position: relative; display: grid; grid-template-columns: minmax(170px, .72fr) minmax(0, 1fr); gap: 18px; align-items: center; margin: 18px 22px 0; padding: 18px; overflow: hidden; border: 1px solid rgba(168,139,255,.18); border-radius: 19px; background: radial-gradient(ellipse at 20% 45%, rgba(112,75,202,.24), transparent 48%), linear-gradient(140deg, #171523, #101018 76%); }
+    .monster-stage::after { position: absolute; right: -80px; bottom: -140px; width: 250px; height: 250px; border: 1px solid rgba(125,228,232,.09); border-radius: 50%; box-shadow: 0 0 0 24px rgba(125,228,232,.025), 0 0 0 50px rgba(125,228,232,.02); content: ""; pointer-events: none; }
+    .monster-art { position: relative; display: grid; min-height: 170px; place-items: center; }
+    .monster-art svg { position: relative; z-index: 1; display: block; width: min(100%, 200px); height: 170px; overflow: visible; filter: drop-shadow(0 12px 18px rgba(0,0,0,.3)); }
+    .monster-info { position: relative; z-index: 1; min-width: 0; }
+    .monster-kind { margin: 0 0 7px; color: var(--cyan); font-size: 9px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+    .monster-name { margin: 0; font-size: clamp(22px, 3vw, 31px); letter-spacing: -.05em; }
+    .monster-desc { max-width: 380px; margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .stats-grid { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 17px; }
+    .stat-box { padding: 10px 11px; border: 1px solid var(--line); border-radius: 12px; background: rgba(5,5,10,.32); }
+    .stat-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; color: var(--muted); font-size: 9px; }
+    .stat-value { color: var(--text); font-size: 15px; font-weight: 800; }
+    .stat-track { height: 4px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.08); }
+    .stat-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--purple-deep), var(--purple)); transition: width .25s ease; }
+    .stat-box[data-stat="defense"] .stat-fill { background: linear-gradient(90deg, #287c83, var(--cyan)); }
+    .stat-box[data-stat="speed"] .stat-fill { background: linear-gradient(90deg, #bd694e, #ffae76); }
+    .phase-panel { padding: 21px 22px 22px; }
+    .phase-heading { display: flex; align-items: start; justify-content: space-between; gap: 18px; }
+    .phase-heading h2 { margin: 0; font-size: 20px; letter-spacing: -.04em; }
+    .phase-copy { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 43px; padding: 0 17px; border: 1px solid transparent; border-radius: 999px; cursor: pointer; font-size: 11px; font-weight: 800; transition: transform .18s ease, filter .18s ease, background .18s ease; }
+    .button:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
+    .button:disabled { cursor: not-allowed; opacity: .42; }
+    .button-primary { background: linear-gradient(100deg, #a88bff, #c6a7ff); color: #171126; box-shadow: 0 8px 28px rgba(168,139,255,.18); }
+    .button-secondary { border-color: var(--line); background: rgba(255,255,255,.035); color: var(--text); }
+    .hatch-button { margin-top: 15px; }
+    .training-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 17px; }
+    .train-button { display: flex; min-height: 82px; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.025); cursor: pointer; text-align: left; transition: border-color .18s ease, background .18s ease, transform .18s ease; }
+    .train-button:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(168,139,255,.5); background: rgba(168,139,255,.07); }
+    .train-button:disabled { cursor: default; opacity: .52; }
+    .train-top { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
+    .train-name { font-size: 11px; font-weight: 750; }
+    .train-icon { color: var(--purple); font-size: 16px; }
+    .train-state { color: var(--muted); font-size: 9px; }
+    .train-button.done { border-color: rgba(116,226,180,.28); background: rgba(116,226,180,.05); }
+    .train-button.done .train-state { color: var(--green); }
+    .rival-card { display: grid; grid-template-columns: 92px minmax(0,1fr); align-items: center; gap: 13px; margin-top: 16px; padding: 12px; border: 1px solid rgba(255,131,173,.2); border-radius: 15px; background: rgba(255,131,173,.035); }
+    .rival-art { display: grid; height: 82px; place-items: center; border-radius: 12px; background: radial-gradient(circle, rgba(255,131,173,.13), transparent 72%); }
+    .rival-art svg { width: 90px; height: 78px; }
+    .rival-label { margin: 0 0 4px; color: var(--pink); font-size: 9px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    .rival-name { margin: 0; font-size: 15px; }
+    .rival-stats { margin: 6px 0 0; color: var(--muted); font-size: 10px; }
+    .battle-button { margin-top: 13px; background: linear-gradient(100deg, #ff82a9, #ffb074); color: #27111a; }
+    .result-box { margin-top: 16px; padding: 14px 15px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.025); }
+    .result-box.won { border-color: rgba(116,226,180,.33); background: rgba(116,226,180,.06); }
+    .result-box.lost { border-color: rgba(255,131,173,.32); background: rgba(255,131,173,.055); }
+    .result-title { margin: 0 0 5px; font-size: 14px; font-weight: 800; }
+    .result-box.won .result-title { color: var(--green); }
+    .result-box.lost .result-title { color: var(--pink); }
+    .result-detail { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .side-stack { display: grid; gap: 15px; }
+    .side-card { padding: 19px; }
+    .side-title { margin: 0; font-size: 15px; letter-spacing: -.02em; }
+    .side-description { margin: 7px 0 14px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .trainer-label { display: block; margin-bottom: 7px; color: #d4cee2; font-size: 10px; font-weight: 750; }
+    .trainer-input { width: 100%; min-height: 41px; padding: 0 12px; border: 1px solid var(--line); border-radius: 11px; outline: none; background: rgba(0,0,0,.18); color: var(--text); font-size: 12px; }
+    .trainer-input:focus { border-color: rgba(168,139,255,.7); box-shadow: 0 0 0 3px rgba(168,139,255,.1); }
+    .personal-best { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 12px; border: 1px solid rgba(233,201,107,.2); border-radius: 13px; background: rgba(233,201,107,.04); }
+    .personal-best span { color: var(--muted); font-size: 10px; }
+    .personal-best strong { color: var(--gold); font-size: 18px; }
+    .leaderboard { display: grid; gap: 8px; margin: 13px 0 0; padding: 0; list-style: none; }
+    .leaderboard-row { display: grid; grid-template-columns: 24px minmax(0,1fr) auto; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid rgba(255,255,255,.06); border-radius: 11px; background: rgba(255,255,255,.018); }
+    .leaderboard-rank { color: var(--purple); font-size: 10px; font-weight: 800; }
+    .leaderboard-name { overflow: hidden; color: #e4e0ee; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .leaderboard-monster { display: block; margin-top: 3px; color: #89849b; font-size: 9px; }
+    .leaderboard-level { color: var(--gold); font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .empty-board { padding: 12px; border: 1px dashed var(--line); border-radius: 11px; color: #89849b; font-size: 10px; text-align: center; }
+    .rules-list { display: grid; gap: 11px; margin: 14px 0 0; padding: 0; list-style: none; }
+    .rules-list li { display: grid; grid-template-columns: 24px 1fr; gap: 9px; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .rule-number { display: grid; width: 22px; height: 22px; place-items: center; border: 1px solid rgba(168,139,255,.26); border-radius: 50%; background: rgba(168,139,255,.08); color: #d7c7ff; font-size: 9px; font-weight: 800; }
+    .game-footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-block: 20px 30px; border-top: 1px solid var(--line); color: #89849b; font-size: 10px; }
+    .game-footer a { color: #bcb5cf; text-decoration: none; }
+    .game-footer a:hover { color: var(--text); }
+    @media (max-width: 860px) {
+      .game-layout { grid-template-columns: minmax(0, 1fr); }
+      .side-stack { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .game-hero { align-items: flex-start; flex-direction: column; gap: 18px; }
+      .hero-note { max-width: 480px; }
+    }
+    @media (max-width: 600px) {
+      .shell { width: min(var(--max), calc(100% - 30px)); }
+      .nav { min-height: 64px; }
+      .nav-links { gap: 11px; }
+      .nav-links a { font-size: 10px; }
+      .game-hero { padding-block: 41px 25px; }
+      .game-layout { padding-bottom: 42px; }
+      .arena-head { padding: 15px; }
+      .week-roadmap { gap: 4px; padding: 14px 12px 0; }
+      .week-step { flex-direction: column; align-items: center; gap: 5px; padding: 7px 3px; font-size: 8px; text-align: center; }
+      .monster-stage { grid-template-columns: 1fr; gap: 3px; margin: 14px 12px 0; padding: 13px; text-align: center; }
+      .monster-art { min-height: 137px; }
+      .monster-art svg { height: 136px; }
+      .monster-info { padding-bottom: 3px; }
+      .monster-desc { margin-inline: auto; }
+      .stats-grid { gap: 6px; }
+      .stat-box { padding: 9px 7px; }
+      .stat-head { font-size: 8px; }
+      .phase-panel { padding: 18px 13px; }
+      .training-controls { gap: 6px; }
+      .train-button { min-height: 76px; padding: 9px 8px; }
+      .train-name { font-size: 10px; }
+      .rival-card { grid-template-columns: 70px minmax(0,1fr); }
+      .rival-art { height: 68px; }
+      .rival-art svg { width: 70px; height: 65px; }
+      .side-stack { grid-template-columns: 1fr; }
+      .game-footer { align-items: flex-start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell nav">
+      <a class="brand" href="index.html" aria-label="EdgeSquirrel home">
+        <span class="brand-mark" aria-hidden="true">ES</span>
+        <span>EdgeSquirrel</span>
+      </a>
+      <nav class="nav-links" aria-label="Game navigation">
+        <a href="index.html#work">Projects</a>
+        <a class="home-link" href="index.html">Back to home ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="game-hero">
+      <div>
+        <p class="eyebrow">A little monster-training game</p>
+        <h1>Hatch. Train.<br><span>Battle.</span></h1>
+        <p class="hero-copy">Raise an original monster from an egg. Train one stat each week, then face a rival in week four. Keep winning to climb levels and set your best run.</p>
+      </div>
+      <div class="hero-note"><strong>One run = four in-game weeks.</strong><br>There’s no real-world waiting. Train Strength, Defense, and Speed once each, then battle.</div>
+    </section>
+
+    <div class="game-layout">
+      <section class="card arena" aria-label="Monster game">
+        <div class="arena-head">
+          <div class="level-block"><span class="level-label">Your level</span><strong class="level-number" id="current-level">0</strong></div>
+          <span class="week-pill" id="week-label">EGG READY</span>
+        </div>
+        <div class="week-roadmap" id="week-roadmap" aria-label="Training and battle weeks">
+          <div class="week-step" data-week="1"><span class="week-step-num">1</span><span>Train</span></div>
+          <div class="week-step" data-week="2"><span class="week-step-num">2</span><span>Train</span></div>
+          <div class="week-step" data-week="3"><span class="week-step-num">3</span><span>Train</span></div>
+          <div class="week-step" data-week="4"><span class="week-step-num">4</span><span>Battle</span></div>
+        </div>
+
+        <div class="monster-stage">
+          <div class="monster-art" id="monster-art" aria-hidden="true"></div>
+          <div class="monster-info">
+            <p class="monster-kind" id="monster-kind">Waiting to hatch</p>
+            <h2 class="monster-name" id="monster-name">A little egg</h2>
+            <p class="monster-desc" id="monster-description">Your next adventure is tucked inside. Hatch it to meet your monster.</p>
+            <div class="stats-grid" id="stats-grid" hidden></div>
+          </div>
+        </div>
+
+        <div class="phase-panel">
+          <div class="phase-heading">
+            <div>
+              <h2 id="phase-title">Ready when you are</h2>
+              <p class="phase-copy" id="phase-copy">Hatch your first egg to begin a run. A new monster starts at Level 0.</p>
+            </div>
+          </div>
+          <div class="training-controls" id="training-controls" hidden>
+            <button class="train-button" type="button" data-stat="strength">
+              <span class="train-top"><span class="train-name">Strength</span><span class="train-icon" aria-hidden="true">✦</span></span>
+              <span class="train-state">Train this week · +1</span>
+            </button>
+            <button class="train-button" type="button" data-stat="defense">
+              <span class="train-top"><span class="train-name">Defense</span><span class="train-icon" aria-hidden="true">⬡</span></span>
+              <span class="train-state">Train this week · +1</span>
+            </button>
+            <button class="train-button" type="button" data-stat="speed">
+              <span class="train-top"><span class="train-name">Speed</span><span class="train-icon" aria-hidden="true">➤</span></span>
+              <span class="train-state">Train this week · +1</span>
+            </button>
+          </div>
+          <button class="button button-primary hatch-button" id="hatch-button" type="button">Hatch your first egg</button>
+          <div id="rival-panel" hidden>
+            <div class="rival-card">
+              <div class="rival-art" id="rival-art" aria-hidden="true"></div>
+              <div>
+                <p class="rival-label">Week four rival</p>
+                <h3 class="rival-name" id="rival-name">Rival</h3>
+                <p class="rival-stats" id="rival-stats"></p>
+              </div>
+            </div>
+            <button class="button battle-button" id="battle-button" type="button">Battle rival</button>
+          </div>
+          <div id="result-panel" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <aside class="side-stack">
+        <section class="card side-card">
+          <h2 class="side-title">Your local leaderboard</h2>
+          <p class="side-description">Best runs saved in this browser on this device. Scores aren’t shared with other visitors.</p>
+          <label class="trainer-label" for="trainer-name">Trainer name</label>
+          <input class="trainer-input" id="trainer-name" type="text" maxlength="16" autocomplete="nickname" value="EdgeSquirrel">
+          <div class="personal-best"><span>Your best level</span><strong id="personal-best">0</strong></div>
+          <ol class="leaderboard" id="leaderboard"></ol>
+        </section>
+        <section class="card side-card">
+          <h2 class="side-title">How to play</h2>
+          <ol class="rules-list">
+            <li><span class="rule-number">1</span><span>Hatch an egg to meet a random original monster with its own starting stats.</span></li>
+            <li><span class="rule-number">2</span><span>In Weeks 1, 2, and 3, train one different stat each week.</span></li>
+            <li><span class="rule-number">3</span><span>In Week 4, battle the generated rival. Total stats and a little luck decide the winner.</span></li>
+            <li><span class="rule-number">4</span><span>A win adds a level and starts another three-week training cycle. A loss brings a new Level 0 egg.</span></li>
+          </ol>
+        </section>
+      </aside>
+    </div>
+
+    <footer class="game-footer">
+      <span>Hatch &amp; Battle · An EdgeSquirrel mini game</span>
+      <a href="index.html">Return to EdgeSquirrel ↗</a>
+    </footer>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'edgesquirrel-hatch-battle-v1';
+    const STAT_LIST = [
+      { key: 'strength', label: 'Strength', mark: '✦' },
+      { key: 'defense', label: 'Defense', mark: '⬡' },
+      { key: 'speed', label: 'Speed', mark: '➤' }
+    ];
+    const MONSTERS = [
+      {
+        id: 'cinderkit', name: 'Cinderkit', kind: 'Ember cub', color: '#ff9a68', light: '#ffe0a2', stats: { strength: 7, defense: 4, speed: 5 },
+        description: 'A bold little fire-tender with a brave heart.',
+        shape: '<path d="M54 82 42 39l34 22c8-5 20-5 28 0l34-22-11 47c6 9 7 21 2 31-8 15-25 23-43 23s-35-8-43-23c-5-10-4-22 1-35Z" fill="currentColor"/><path d="M135 113c18-2 23-13 18-24-2 13-12 14-18 12 9-8 8-16 4-21-1 12-10 15-17 17Z" fill="#ffce76"/><path d="m56 68-8-19 20 13m58 4 8-19-21 13" fill="none" stroke="#ffe0a2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>'
+      },
+      {
+        id: 'spriggle', name: 'Spriggle', kind: 'Moss buddy', color: '#74c99a', light: '#c1ef8b', stats: { strength: 4, defense: 8, speed: 5 },
+        description: 'A sturdy garden guardian that grows stronger with care.',
+        shape: '<ellipse cx="91" cy="99" rx="48" ry="43" fill="currentColor"/><path d="M82 61c-22-28-2-38 8-19 7-24 31-19 19 5-4 8-12 14-20 18m-24 1C43 48 32 65 54 75m77-5c21-25 34-9 13 4" fill="#b5e57f" stroke="#d7f5ae" stroke-width="3" stroke-linecap="round"/><path d="M50 108c-13 8-14 19-4 27m91-28c14 7 15 19 5 27" fill="none" stroke="#d7f5ae" stroke-width="7" stroke-linecap="round"/>'
+      },
+      {
+        id: 'zipwing', name: 'Zipwing', kind: 'Storm sprite', color: '#8e9dff', light: '#cbf2ff', stats: { strength: 5, defense: 4, speed: 8 },
+        description: 'A quick sky-skipper that can outrun a summer storm.',
+        shape: '<path d="M65 83c-23-31-45-32-51-18 16 1 23 15 30 34-14-8-24-7-31 2 21 2 28 16 36 26 6 14 20 23 39 23s33-9 39-23c8-10 15-24 36-26-7-9-17-10-31-2 7-19 14-33 30-34-6-14-28-13-51 18-9-6-27-6-36 0Z" fill="currentColor"/><path d="m63 66 11-24 14 22m26 2 13-24 9 26" fill="#c9b7ff" stroke="#e2dbff" stroke-width="3" stroke-linejoin="round"/><path d="m44 63-9-11m118 11 9-11" stroke="#7de4e8" stroke-width="4" stroke-linecap="round"/>'
+      },
+      {
+        id: 'tidebit', name: 'Tidebit', kind: 'Tide trickster', color: '#56bad1', light: '#c7f7ee', stats: { strength: 6, defense: 6, speed: 6 },
+        description: 'A friendly water-dweller with a clever twisty tail.',
+        shape: '<path d="M50 86c-18-9-27-20-31-32 20 2 34 10 44 24 17-10 42-10 59 0 10-14 24-22 44-24-4 12-13 23-31 32 10 14 7 31-2 42-10 12-24 18-41 18s-31-6-41-18c-9-11-12-28-1-42Z" fill="currentColor"/><path d="M80 60c-3-18 8-28 15-35 7 10 7 21 1 32m-26 9-3-15m56 16 7-15" fill="#9de8de" stroke="#c7f7ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M51 111c-11 7-19 17-18 27 8-7 16-9 25-8m74-19c11 7 19 17 18 27-8-7-16-9-25-8" fill="none" stroke="#c7f7ee" stroke-width="6" stroke-linecap="round"/>'
+      },
+      {
+        id: 'boulderkin', name: 'Boulderkin', kind: 'Stone keeper', color: '#b3a3d4', light: '#f0d79b', stats: { strength: 7, defense: 8, speed: 3 },
+        description: 'A patient rock-guardian who never backs down.',
+        shape: '<path d="M50 79 39 57l27-4 13-17 18 10 25-6 15 22-8 49c-3 20-18 33-42 33s-39-13-42-33Z" fill="currentColor"/><path d="m46 77-17-13 18-2m91 15 17-13-18-2M77 48l-5-16 19 11m22 4 12-16 5 22" fill="#e0c993" stroke="#f0d79b" stroke-width="3" stroke-linejoin="round"/><path d="m66 113 12-6 9 9 10-9 13 6-7 17H74Z" fill="#8d80aa" opacity=".8"/>'
+      },
+      {
+        id: 'moonpup', name: 'Moonpup', kind: 'Moonlit sprinter', color: '#bd91ff', light: '#d8f3ff', stats: { strength: 5, defense: 5, speed: 8 },
+        description: 'A quiet night-runner with a bright spark in its eyes.',
+        shape: '<path d="M54 80 43 35l35 25c9-5 25-5 34 0l35-25-11 51c7 10 7 24 1 35-8 15-25 23-44 23s-36-8-44-23c-6-11-6-25 5-41Z" fill="currentColor"/><path d="M136 116c22 2 28 17 19 29-1-10-8-12-17-11m-85-63L42 49l23 15m70 0 13-15-23 15" fill="none" stroke="#d8f3ff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="m120 39 4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1Z" fill="#f3d77e"/>'
+      }
+    ];
+    const DEFAULT_STATE = {
+      trainerName: 'EdgeSquirrel',
+      monster: null,
+      previousMonsterId: '',
+      level: 0,
+      trained: { strength: false, defense: false, speed: false },
+      phase: 'egg',
+      rival: null,
+      result: null,
+      scores: []
+    };
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (!saved || typeof saved !== 'object') return Object.assign({}, DEFAULT_STATE);
+        return Object.assign({}, DEFAULT_STATE, saved, {
+          trained: Object.assign({}, DEFAULT_STATE.trained, saved.trained || {}),
+          scores: Array.isArray(saved.scores) ? saved.scores : []
+        });
+      } catch {
+        return Object.assign({}, DEFAULT_STATE);
+      }
+    }
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+    }
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    function pickMonster(excludeId) {
+      let choices = MONSTERS.filter(function (monster) { return monster.id !== excludeId; });
+      if (!choices.length) choices = MONSTERS;
+      return choices[randomInt(0, choices.length - 1)];
+    }
+    function freshTraining() {
+      return { strength: false, defense: false, speed: false };
+    }
+    function monsterArt(monster) {
+      if (!monster) {
+        return '<svg viewBox="0 0 200 170" role="img" aria-label="A mysterious egg"><ellipse cx="100" cy="148" rx="49" ry="8" fill="#08080e" opacity=".45"/><path d="M100 22c-26 0-48 38-48 72 0 32 20 50 48 50s48-18 48-50c0-34-22-72-48-72Z" fill="#e8d9ff" stroke="#a88bff" stroke-width="5"/><path d="M100 28c-18 0-34 30-36 57 10-15 21-19 36-19s26 4 36 19c-2-27-18-57-36-57Z" fill="#fff" opacity=".56"/><path d="m96 82 10 13-9 10 8 12" fill="none" stroke="#714bd2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="76" cy="74" r="2" fill="#fff"/><circle cx="129" cy="58" r="2" fill="#fff"/><circle cx="137" cy="111" r="1.5" fill="#fff"/></svg>';
+      }
+      return '<svg viewBox="0 0 200 170" role="img" aria-label="' + monster.name + ' illustration"><ellipse cx="100" cy="150" rx="52" ry="8" fill="#08080e" opacity=".45"/><circle cx="100" cy="88" r="69" fill="' + monster.color + '" opacity=".09"/><g>' + monster.shape + '</g><ellipse cx="84" cy="94" rx="5" ry="7" fill="#211b31"/><ellipse cx="116" cy="94" rx="5" ry="7" fill="#211b31"/><circle cx="85" cy="92" r="1.6" fill="#fff"/><circle cx="117" cy="92" r="1.6" fill="#fff"/><path d="M94 108c4 4 8 4 12 0" fill="none" stroke="#342541" stroke-width="3" stroke-linecap="round"/><path d="M62 91c5-3 11-3 16-1m44 0c5-2 11-2 16 1" fill="none" stroke="' + monster.light + '" stroke-width="2" stroke-linecap="round" opacity=".8"/></svg>';
+    }
+    function renderArt() {
+      const art = document.getElementById('monster-art');
+      art.innerHTML = monsterArt(state.monster);
+      art.setAttribute('aria-label', state.monster ? state.monster.name + ' illustration' : 'Mysterious egg illustration');
+    }
+    function statTotal(stats) {
+      return STAT_LIST.reduce(function (total, stat) { return total + Number(stats[stat.key] || 0); }, 0);
+    }
+    function renderStats() {
+      const grid = document.getElementById('stats-grid');
+      if (!state.monster) {
+        grid.hidden = true;
+        grid.innerHTML = '';
+        return;
+      }
+      grid.hidden = false;
+      grid.innerHTML = STAT_LIST.map(function (stat) {
+        const value = Number(state.monster.stats[stat.key] || 0);
+        const width = Math.min(100, 22 + value * 5);
+        return '<div class="stat-box" data-stat="' + stat.key + '"><div class="stat-head"><span>' + stat.label + '</span><strong class="stat-value">' + value + '</strong></div><div class="stat-track"><div class="stat-fill" style="width:' + width + '%"></div></div></div>';
+      }).join('');
+    }
+    function getTrainingCount() {
+      return STAT_LIST.filter(function (stat) { return state.trained[stat.key]; }).length;
+    }
+    function renderWeekRoadmap() {
+      const count = getTrainingCount();
+      const activeWeek = state.phase === 'battleReady' ? 4 : count + 1;
+      document.querySelectorAll('.week-step').forEach(function (step) {
+        const week = Number(step.dataset.week);
+        step.classList.toggle('complete', state.phase !== 'egg' && week <= count);
+        step.classList.toggle('active', state.phase !== 'egg' && week === activeWeek);
+      });
+      const weekLabel = document.getElementById('week-label');
+      if (state.phase === 'egg') weekLabel.textContent = 'EGG READY';
+      else if (state.phase === 'battleReady') weekLabel.textContent = 'WEEK 4 · BATTLE';
+      else weekLabel.textContent = 'WEEK ' + (count + 1) + ' / 4';
+    }
+    function escapeHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+      });
+    }
+    function renderLeaderboard() {
+      const scores = state.scores.slice().sort(function (a, b) {
+        return (Number(b.level) - Number(a.level)) || (Number(b.when) - Number(a.when));
+      }).slice(0, 5);
+      const board = document.getElementById('leaderboard');
+      document.getElementById('personal-best').textContent = scores.length ? String(scores[0].level) : '0';
+      if (!scores.length) {
+        board.innerHTML = '<li class="empty-board">Your first win will set a score here.</li>';
+        return;
+      }
+      board.innerHTML = scores.map(function (score, index) {
+        return '<li class="leaderboard-row"><span class="leaderboard-rank">#' + (index + 1) + '</span><span class="leaderboard-name">' + escapeHtml(score.name) + '<small class="leaderboard-monster">' + escapeHtml(score.monster) + '</small></span><strong class="leaderboard-level">LV ' + Number(score.level) + '</strong></li>';
+      }).join('');
+    }
+    function renderRival() {
+      const panel = document.getElementById('rival-panel');
+      panel.hidden = state.phase !== 'battleReady';
+      if (state.phase !== 'battleReady' || !state.rival) return;
+      document.getElementById('rival-art').innerHTML = monsterArt(state.rival);
+      document.getElementById('rival-name').textContent = state.rival.name;
+      document.getElementById('rival-stats').textContent = 'STR ' + state.rival.stats.strength + ' · DEF ' + state.rival.stats.defense + ' · SPD ' + state.rival.stats.speed;
+    }
+    function renderResult() {
+      const panel = document.getElementById('result-panel');
+      panel.innerHTML = '';
+      if (!state.result) return;
+      const box = document.createElement('div');
+      box.className = 'result-box ' + (state.result.won ? 'won' : 'lost');
+      const title = document.createElement('p');
+      title.className = 'result-title';
+      title.textContent = state.result.won ? 'Victory! Your monster levels up.' : 'Defeat. A new egg is ready.';
+      const detail = document.createElement('p');
+      detail.className = 'result-detail';
+      detail.textContent = state.result.detail;
+      box.append(title, detail);
+      panel.append(box);
+    }
+    function render() {
+      renderArt();
+      renderStats();
+      renderWeekRoadmap();
+      renderRival();
+      renderLeaderboard();
+      renderResult();
+      document.getElementById('current-level').textContent = String(state.level);
+      document.getElementById('monster-kind').textContent = state.monster ? state.monster.kind : 'Waiting to hatch';
+      document.getElementById('monster-name').textContent = state.monster ? state.monster.name : 'A little egg';
+      document.getElementById('monster-description').textContent = state.monster ? state.monster.description : 'Your next adventure is tucked inside. Hatch it to meet your monster.';
+      const phaseTitle = document.getElementById('phase-title');
+      const phaseCopy = document.getElementById('phase-copy');
+      const trainControls = document.getElementById('training-controls');
+      const hatchButton = document.getElementById('hatch-button');
+      const battleButton = document.getElementById('battle-button');
+      const count = getTrainingCount();
+      trainControls.hidden = state.phase !== 'training';
+      hatchButton.hidden = state.phase !== 'egg';
+      hatchButton.textContent = state.previousMonsterId ? 'Hatch a new monster' : 'Hatch your first egg';
+      battleButton.disabled = false;
+      if (state.phase === 'egg') {
+        phaseTitle.textContent = state.previousMonsterId ? 'A new egg is waiting' : 'Ready when you are';
+        phaseCopy.textContent = state.previousMonsterId ? 'Your last monster has fallen. Hatch a different monster to begin again at Level 0.' : 'Hatch your first egg to begin a run. A new monster starts at Level 0.';
+      } else if (state.phase === 'training') {
+        phaseTitle.textContent = 'Week ' + (count + 1) + ' — choose one stat';
+        phaseCopy.textContent = 'Train each stat once across Weeks 1–3. Each training adds 1 point. Then Week 4 is battle week.';
+        document.querySelectorAll('.train-button').forEach(function (button) {
+          const key = button.dataset.stat;
+          const done = Boolean(state.trained[key]);
+          button.disabled = done;
+          button.classList.toggle('done', done);
+          button.querySelector('.train-state').textContent = done ? 'Trained this cycle ✓' : 'Train this week · +1';
+        });
+      } else if (state.phase === 'battleReady') {
+        phaseTitle.textContent = 'Week 4 — battle time';
+        phaseCopy.textContent = 'Your rival is ready. The fight is automatic: total stats plus a little battle luck decide the winner.';
+      }
+      const nameInput = document.getElementById('trainer-name');
+      if (document.activeElement !== nameInput && nameInput.value !== state.trainerName) nameInput.value = state.trainerName;
+    }
+    function recordScore(level, monsterName) {
+      if (level <= 0) return;
+      const name = (state.trainerName || 'Player').trim().slice(0, 16) || 'Player';
+      const existing = state.scores.find(function (score) { return String(score.name).toLowerCase() === name.toLowerCase(); });
+      if (existing) {
+        if (level > existing.level) {
+          existing.level = level;
+          existing.monster = monsterName;
+          existing.when = Date.now();
+        }
+      } else {
+        state.scores.push({ name: name, level: level, monster: monsterName, when: Date.now() });
+      }
+      state.scores.sort(function (a, b) { return (Number(b.level) - Number(a.level)) || (Number(b.when) - Number(a.when)); });
+      state.scores = state.scores.slice(0, 10);
+    }
+    function hatchEgg() {
+      const selected = pickMonster(state.previousMonsterId);
+      state.monster = {
+        id: selected.id,
+        name: selected.name,
+        kind: selected.kind,
+        color: selected.color,
+        light: selected.light,
+        description: selected.description,
+        shape: selected.shape,
+        stats: Object.assign({}, selected.stats)
+      };
+      state.level = 0;
+      state.trained = freshTraining();
+      state.phase = 'training';
+      state.rival = null;
+      state.result = null;
+      state.previousMonsterId = '';
+      saveState();
+      render();
+    }
+    function createRival() {
+      const rivalTemplate = pickMonster(state.monster ? state.monster.id : '');
+      const growth = state.level + 1;
+      const rival = {
+        id: rivalTemplate.id,
+        name: rivalTemplate.name,
+        kind: rivalTemplate.kind,
+        color: rivalTemplate.color,
+        light: rivalTemplate.light,
+        description: rivalTemplate.description,
+        shape: rivalTemplate.shape,
+        stats: {
+          strength: rivalTemplate.stats.strength + growth,
+          defense: rivalTemplate.stats.defense + growth,
+          speed: rivalTemplate.stats.speed + growth
+        }
+      };
+      state.rival = rival;
+      state.phase = 'battleReady';
+    }
+    function trainStat(key) {
+      if (state.phase !== 'training' || !state.monster || state.trained[key]) return;
+      state.monster.stats[key] += 1;
+      state.trained[key] = true;
+      if (getTrainingCount() === 3) createRival();
+      state.result = null;
+      saveState();
+      render();
+    }
+    function battle() {
+      if (state.phase !== 'battleReady' || !state.monster || !state.rival) return;
+      const playerRoll = randomInt(0, 4);
+      const rivalRoll = randomInt(0, 4);
+      const playerPower = statTotal(state.monster.stats) + playerRoll;
+      const rivalPower = statTotal(state.rival.stats) + rivalRoll;
+      const won = playerPower >= rivalPower;
+      const line = 'Battle power: ' + playerPower + ' to ' + rivalPower + ' (including a little luck).';
+      if (won) {
+        const defeated = state.rival.name;
+        state.level += 1;
+        recordScore(state.level, state.monster.name);
+        state.trained = freshTraining();
+        state.rival = null;
+        state.phase = 'training';
+        state.result = { won: true, detail: state.monster.name + ' beat ' + defeated + '. Your new level is ' + state.level + '. ' + line };
+      } else {
+        const lostMonster = state.monster.name;
+        const lostAt = state.level;
+        state.previousMonsterId = state.monster.id;
+        state.monster = null;
+        state.level = 0;
+        state.trained = freshTraining();
+        state.rival = null;
+        state.phase = 'egg';
+        state.result = { won: false, detail: lostMonster + ' finished at Level ' + lostAt + '. ' + line + ' Your best score is saved on this device.' };
+      }
+      saveState();
+      render();
+    }
+    document.getElementById('hatch-button').addEventListener('click', hatchEgg);
+    document.querySelectorAll('.train-button').forEach(function (button) {
+      button.addEventListener('click', function () { trainStat(button.dataset.stat); });
+    });
+    document.getElementById('battle-button').addEventListener('click', battle);
+    document.getElementById('trainer-name').addEventListener('input', function (event) {
+      state.trainerName = event.target.value.slice(0, 16) || 'Player';
+      saveState();
+      renderLeaderboard();
+    });
+    render();
+  </script>
+</body>
+</html>
