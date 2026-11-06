@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0b12">
-  <meta name="description" content="Hatch a monster, train it over three weeks, and battle a rival in week four.">
+  <meta name="description" content="Hatch a monster, train it your way over three weeks, and take on a turn-based rival in week four.">
   <title>Hatch &amp; Battle | EdgeSquirrel</title>
   <style>
     :root {
@@ -71,6 +71,11 @@
     .week-step.complete { color: #9fe5cc; }
     .week-step.complete .week-step-num { border-color: rgba(116,226,180,.55); background: rgba(116,226,180,.13); color: var(--green); }
     .monster-stage { position: relative; display: grid; grid-template-columns: minmax(170px, .72fr) minmax(0, 1fr); gap: 18px; align-items: center; margin: 18px 22px 0; padding: 18px; overflow: hidden; border: 1px solid rgba(168,139,255,.18); border-radius: 19px; background: radial-gradient(ellipse at 20% 45%, rgba(112,75,202,.24), transparent 48%), linear-gradient(140deg, #171523, #101018 76%); }
+    .monster-stage[data-room="crystal"] { background: radial-gradient(ellipse at 50% 16%,rgba(174,126,255,.27),transparent 42%),linear-gradient(145deg,#211735,#101018 74%); }
+    .monster-stage[data-room="ember"] { background: radial-gradient(ellipse at 17% 75%,rgba(255,118,72,.2),transparent 42%),linear-gradient(145deg,#261717,#101018 74%); }
+    .monster-stage[data-room="moon"] { background: radial-gradient(ellipse at 82% 18%,rgba(96,143,255,.22),transparent 43%),linear-gradient(145deg,#151a31,#101018 74%); }
+    .monster-stage[data-room="moss"] { background: radial-gradient(ellipse at 18% 68%,rgba(74,192,134,.17),transparent 44%),linear-gradient(145deg,#14251e,#101018 74%); }
+    .room-label { position:absolute; z-index:2; top:12px; left:14px; padding:6px 9px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background:rgba(8,8,14,.55); color:#d6c8ff; font-size:8px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
     .monster-stage::after { position: absolute; right: -80px; bottom: -140px; width: 250px; height: 250px; border: 1px solid rgba(125,228,232,.09); border-radius: 50%; box-shadow: 0 0 0 24px rgba(125,228,232,.025), 0 0 0 50px rgba(125,228,232,.02); content: ""; pointer-events: none; }
     .monster-art { position: relative; display: grid; min-height: 170px; place-items: center; }
     .monster-art svg { position: relative; z-index: 1; display: block; width: min(100%, 200px); height: 170px; overflow: visible; filter: drop-shadow(0 12px 18px rgba(0,0,0,.3)); }
@@ -113,6 +118,29 @@
     .rival-name { margin: 0; font-size: 15px; }
     .rival-stats { margin: 6px 0 0; color: var(--muted); font-size: 10px; }
     .battle-button { margin-top: 13px; background: linear-gradient(100deg, #ff82a9, #ffb074); color: #27111a; }
+    .battle-screen { margin-top:16px; padding:15px; border:1px solid rgba(255,131,173,.24); border-radius:16px; background:radial-gradient(ellipse at 50% 0%,rgba(112,75,202,.16),transparent 65%),rgba(4,4,9,.44); }
+    .combatants { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .combatant { min-width:0; padding:10px; border:1px solid var(--line); border-radius:13px; background:rgba(255,255,255,.025); }
+    .combatant-top { display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:10px; font-weight:800; }
+    .combatant-art { display:grid; height:94px; place-items:center; }
+    .combatant-art svg { width:120px; height:100px; transition:transform .22s ease; }
+    .combatant.attacking .combatant-art svg { transform:translateX(12px) scale(1.05); }
+    .combatant.enemy.attacking .combatant-art svg { transform:translateX(-12px) scale(1.05); }
+    .combatant.hit { animation: hit .3s ease; }
+    @keyframes hit { 25%{transform:translateX(5px);filter:brightness(1.8)} 60%{transform:translateX(-4px)} }
+    .hp-line { display:flex; justify-content:space-between; gap:5px; color:var(--muted); font-size:9px; }
+    .hp-track { height:7px; margin-top:6px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.1); }
+    .hp-fill { width:100%; height:100%; border-radius:inherit; background:linear-gradient(90deg,#bd4f7d,#ff83ad); transition:width .35s ease; }
+    .combatant.player .hp-fill { background:linear-gradient(90deg,#6042c1,#a88bff); }
+    .move-heading { margin:15px 0 8px; color:#d9d3e5; font-size:10px; font-weight:800; }
+    .move-controls { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+    .move-button { min-height:58px; padding:8px; border:1px solid rgba(168,139,255,.23); border-radius:11px; background:rgba(168,139,255,.075); color:var(--text); cursor:pointer; text-align:left; }
+    .move-button:hover:not(:disabled) { border-color:var(--purple); background:rgba(168,139,255,.15); }
+    .move-button:disabled { opacity:.42; cursor:not-allowed; }
+    .move-name { display:block; font-size:9px; font-weight:800; }
+    .move-meta { display:block; margin-top:5px; color:var(--muted); font-size:8px; }
+    .battle-log { min-height:44px; max-height:102px; overflow:auto; margin:10px 0 0; padding:8px 10px; border:1px solid rgba(255,255,255,.07); border-radius:10px; background:rgba(0,0,0,.2); color:#d4cee2; font-size:9px; line-height:1.55; }
+    .rare-note { color:#d7b8ff; }
     .result-box { margin-top: 16px; padding: 14px 15px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.025); }
     .result-box.won { border-color: rgba(116,226,180,.33); background: rgba(116,226,180,.06); }
     .result-box.lost { border-color: rgba(255,131,173,.32); background: rgba(255,131,173,.055); }
@@ -174,6 +202,9 @@
       .rival-card { grid-template-columns: 70px minmax(0,1fr); }
       .rival-art { height: 68px; }
       .rival-art svg { width: 70px; height: 65px; }
+      .move-controls { grid-template-columns:1fr; }
+      .combatant-art { height:78px; }
+      .combatant-art svg { width:95px; height:84px; }
       .side-stack { grid-template-columns: 1fr; }
       .game-footer { align-items: flex-start; flex-direction: column; }
     }
@@ -201,9 +232,9 @@
       <div>
         <p class="eyebrow">A little monster-training game</p>
         <h1>Hatch. Train.<br><span>Battle.</span></h1>
-        <p class="hero-copy">Raise an original monster from an egg. Train one stat each week, then face a rival in week four. Keep winning to climb levels and set your best run.</p>
+        <p class="hero-copy">Hatch a creature from a strange egg, train any stat your way, then guide it through a turn-based battle. Keep winning to climb levels and set your best run.</p>
       </div>
-      <div class="hero-note"><strong>One run = four in-game weeks.</strong><br>There’s no real-world waiting. Train Strength, Defense, and Speed once each, then battle.</div>
+      <div class="hero-note"><strong>One run = four in-game weeks.</strong><br>No real-world waiting. Choose any stat each of the first three weeks, then command your attacks in Week 4.</div>
     </section>
 
     <div class="game-layout">
@@ -219,7 +250,8 @@
           <div class="week-step" data-week="4"><span class="week-step-num">4</span><span>Battle</span></div>
         </div>
 
-        <div class="monster-stage">
+        <div class="monster-stage" id="monster-stage" data-room="crystal">
+          <span class="room-label" id="room-label">The Crystal Vault</span>
           <div class="monster-art" id="monster-art" aria-hidden="true"></div>
           <div class="monster-info">
             <p class="monster-kind" id="monster-kind">Waiting to hatch</p>
@@ -239,15 +271,15 @@
           <div class="training-controls" id="training-controls" hidden>
             <button class="train-button" type="button" data-stat="strength">
               <span class="train-top"><span class="train-name">Strength</span><span class="train-icon" aria-hidden="true">✦</span></span>
-              <span class="train-state">Train this week · +1</span>
+              <span class="train-state">Choose this week · +1</span>
             </button>
             <button class="train-button" type="button" data-stat="defense">
               <span class="train-top"><span class="train-name">Defense</span><span class="train-icon" aria-hidden="true">⬡</span></span>
-              <span class="train-state">Train this week · +1</span>
+              <span class="train-state">Choose this week · +1</span>
             </button>
             <button class="train-button" type="button" data-stat="speed">
               <span class="train-top"><span class="train-name">Speed</span><span class="train-icon" aria-hidden="true">➤</span></span>
-              <span class="train-state">Train this week · +1</span>
+              <span class="train-state">Choose this week · +1</span>
             </button>
           </div>
           <button class="button button-primary hatch-button" id="hatch-button" type="button">Hatch your first egg</button>
@@ -261,6 +293,15 @@
               </div>
             </div>
             <button class="button battle-button" id="battle-button" type="button">Battle rival</button>
+            <div class="battle-screen" id="battle-screen" hidden>
+              <div class="combatants">
+                <div class="combatant player" id="player-combatant"><div class="combatant-top"><span id="player-combat-name">Your monster</span><span>YOU</span></div><div class="combatant-art" id="player-combat-art"></div><div class="hp-line"><span>HP</span><strong id="player-hp-label">0 / 0</strong></div><div class="hp-track"><div class="hp-fill" id="player-hp-fill"></div></div></div>
+                <div class="combatant enemy" id="enemy-combatant"><div class="combatant-top"><span id="enemy-combat-name">Rival</span><span>RIVAL</span></div><div class="combatant-art" id="enemy-combat-art"></div><div class="hp-line"><span>HP</span><strong id="enemy-hp-label">0 / 0</strong></div><div class="hp-track"><div class="hp-fill" id="enemy-hp-fill"></div></div></div>
+              </div>
+              <p class="move-heading">Choose your attack</p>
+              <div class="move-controls" id="move-controls"></div>
+              <div class="battle-log" id="battle-log" aria-live="polite">The battle is ready. Pick a move to begin.</div>
+            </div>
           </div>
           <div id="result-panel" aria-live="polite"></div>
         </div>
@@ -279,8 +320,8 @@
           <h2 class="side-title">How to play</h2>
           <ol class="rules-list">
             <li><span class="rule-number">1</span><span>Hatch an egg to meet a random original monster with its own starting stats.</span></li>
-            <li><span class="rule-number">2</span><span>In Weeks 1, 2, and 3, train one different stat each week.</span></li>
-            <li><span class="rule-number">3</span><span>In Week 4, battle the generated rival. Total stats and a little luck decide the winner.</span></li>
+            <li><span class="rule-number">2</span><span>In Weeks 1–3, choose any stat each time. You can train Strength, Defense, or Speed repeatedly.</span></li>
+            <li><span class="rule-number">3</span><span>In Week 4, choose attacks during a turn-based fight. Your stats and some luck affect the action.</span></li>
             <li><span class="rule-number">4</span><span>A win adds a level and starts another three-week training cycle. A loss brings a new Level 0 egg.</span></li>
           </ol>
         </section>
@@ -301,58 +342,50 @@
       { key: 'speed', label: 'Speed', mark: '➤' }
     ];
     const MONSTERS = [
-      {
-        id: 'cinderkit', name: 'Cinderkit', kind: 'Ember cub', color: '#ff9a68', light: '#ffe0a2', stats: { strength: 7, defense: 4, speed: 5 },
-        description: 'A bold little fire-tender with a brave heart.',
-        shape: '<path d="M54 82 42 39l34 22c8-5 20-5 28 0l34-22-11 47c6 9 7 21 2 31-8 15-25 23-43 23s-35-8-43-23c-5-10-4-22 1-35Z" fill="currentColor"/><path d="M135 113c18-2 23-13 18-24-2 13-12 14-18 12 9-8 8-16 4-21-1 12-10 15-17 17Z" fill="#ffce76"/><path d="m56 68-8-19 20 13m58 4 8-19-21 13" fill="none" stroke="#ffe0a2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>'
-      },
-      {
-        id: 'spriggle', name: 'Spriggle', kind: 'Moss buddy', color: '#74c99a', light: '#c1ef8b', stats: { strength: 4, defense: 8, speed: 5 },
-        description: 'A sturdy garden guardian that grows stronger with care.',
-        shape: '<ellipse cx="91" cy="99" rx="48" ry="43" fill="currentColor"/><path d="M82 61c-22-28-2-38 8-19 7-24 31-19 19 5-4 8-12 14-20 18m-24 1C43 48 32 65 54 75m77-5c21-25 34-9 13 4" fill="#b5e57f" stroke="#d7f5ae" stroke-width="3" stroke-linecap="round"/><path d="M50 108c-13 8-14 19-4 27m91-28c14 7 15 19 5 27" fill="none" stroke="#d7f5ae" stroke-width="7" stroke-linecap="round"/>'
-      },
-      {
-        id: 'zipwing', name: 'Zipwing', kind: 'Storm sprite', color: '#8e9dff', light: '#cbf2ff', stats: { strength: 5, defense: 4, speed: 8 },
-        description: 'A quick sky-skipper that can outrun a summer storm.',
-        shape: '<path d="M65 83c-23-31-45-32-51-18 16 1 23 15 30 34-14-8-24-7-31 2 21 2 28 16 36 26 6 14 20 23 39 23s33-9 39-23c8-10 15-24 36-26-7-9-17-10-31-2 7-19 14-33 30-34-6-14-28-13-51 18-9-6-27-6-36 0Z" fill="currentColor"/><path d="m63 66 11-24 14 22m26 2 13-24 9 26" fill="#c9b7ff" stroke="#e2dbff" stroke-width="3" stroke-linejoin="round"/><path d="m44 63-9-11m118 11 9-11" stroke="#7de4e8" stroke-width="4" stroke-linecap="round"/>'
-      },
-      {
-        id: 'tidebit', name: 'Tidebit', kind: 'Tide trickster', color: '#56bad1', light: '#c7f7ee', stats: { strength: 6, defense: 6, speed: 6 },
-        description: 'A friendly water-dweller with a clever twisty tail.',
-        shape: '<path d="M50 86c-18-9-27-20-31-32 20 2 34 10 44 24 17-10 42-10 59 0 10-14 24-22 44-24-4 12-13 23-31 32 10 14 7 31-2 42-10 12-24 18-41 18s-31-6-41-18c-9-11-12-28-1-42Z" fill="currentColor"/><path d="M80 60c-3-18 8-28 15-35 7 10 7 21 1 32m-26 9-3-15m56 16 7-15" fill="#9de8de" stroke="#c7f7ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M51 111c-11 7-19 17-18 27 8-7 16-9 25-8m74-19c11 7 19 17 18 27-8-7-16-9-25-8" fill="none" stroke="#c7f7ee" stroke-width="6" stroke-linecap="round"/>'
-      },
-      {
-        id: 'boulderkin', name: 'Boulderkin', kind: 'Stone keeper', color: '#b3a3d4', light: '#f0d79b', stats: { strength: 7, defense: 8, speed: 3 },
-        description: 'A patient rock-guardian who never backs down.',
-        shape: '<path d="M50 79 39 57l27-4 13-17 18 10 25-6 15 22-8 49c-3 20-18 33-42 33s-39-13-42-33Z" fill="currentColor"/><path d="m46 77-17-13 18-2m91 15 17-13-18-2M77 48l-5-16 19 11m22 4 12-16 5 22" fill="#e0c993" stroke="#f0d79b" stroke-width="3" stroke-linejoin="round"/><path d="m66 113 12-6 9 9 10-9 13 6-7 17H74Z" fill="#8d80aa" opacity=".8"/>'
-      },
-      {
-        id: 'moonpup', name: 'Moonpup', kind: 'Moonlit sprinter', color: '#bd91ff', light: '#d8f3ff', stats: { strength: 5, defense: 5, speed: 8 },
-        description: 'A quiet night-runner with a bright spark in its eyes.',
-        shape: '<path d="M54 80 43 35l35 25c9-5 25-5 34 0l35-25-11 51c7 10 7 24 1 35-8 15-25 23-44 23s-36-8-44-23c-6-11-6-25 5-41Z" fill="currentColor"/><path d="M136 116c22 2 28 17 19 29-1-10-8-12-17-11m-85-63L42 49l23 15m70 0 13-15-23 15" fill="none" stroke="#d8f3ff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="m120 39 4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1Z" fill="#f3d77e"/>'
-      }
+      { id:'emberdrake', name:'Ember Drake', kind:'Fire-breathing reptile', color:'#e7734e', light:'#ffd07b', stats:{strength:7,defense:5,speed:4}, description:'A young dragon with a hot temper and a bright flame.', moves:[{name:'Cinder Claw',power:7,accuracy:94},{name:'Tail Scorch',power:10,accuracy:78},{name:'Flame Guard',power:5,accuracy:100,guard:3}], shape:'<path d="M52 104 38 75l25 10 9-32 21 15 20-16 18 30 28-12-17 36-4 27-24 16H79l-25-18Z" fill="currentColor"/><path d="m67 78-15-34 31 19m43 7 24-29-7 38M61 113 29 96l7 30 28 8m69-20 29-16-3 34-32 13" fill="currentColor" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="m80 78-2-15 14 12m28 2 12-15 4 20" fill="none" stroke="currentColor" stroke-width="5"/>' },
+      { id:'frostdrake', name:'Frostscale', kind:'Ice dragon', color:'#65b8d3', light:'#d3fbff', stats:{strength:5,defense:7,speed:5}, description:'A calm glacier drake with crystal horns and icy scales.', moves:[{name:'Frost Bite',power:8,accuracy:90},{name:'Glacier Rush',power:11,accuracy:72},{name:'Ice Shell',power:4,accuracy:100,guard:4}], shape:'<path d="M53 106 43 77l26 10 4-39 24 21 17-21 18 37 26-10-14 35-5 28-24 14H78l-22-18Z" fill="currentColor"/><path d="m68 77-7-31 24 23m42 2 19-27-3 38m-75 29-28-18 7 33 28 8m68-22 25-17-2 34-30 14" fill="currentColor" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/><path d="m75 80 8-19 12 15m24 1 13-17 2 22" fill="none" stroke="#ddffff" stroke-width="4"/>' },
+      { id:'duskfang', name:'Duskfang', kind:'Shadow wolf', color:'#8879bd', light:'#d5c7ff', stats:{strength:6,defense:5,speed:7}, description:'A quick-footed wolf that hunts beneath the evening stars.', moves:[{name:'Moon Pounce',power:8,accuracy:93},{name:'Shadow Rush',power:10,accuracy:82},{name:'Pack Guard',power:4,accuracy:100,guard:3}], shape:'<path d="M54 106 41 45l39 24q20-11 40 0l39-24-15 65q4 27-19 38l-24-7-20 7q-28-11-27-42Z" fill="currentColor"/><path d="m62 70-15-35 34 25m49 10 22-33-7 42M61 126l-16 17 26-7m64-10 21 14-31-4" fill="currentColor" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="M137 112q28 2 31 20-17-9-29-4" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round"/>' },
+      { id:'stormwolf', name:'Stormwolf', kind:'Lightning wolf', color:'#5f8fb3', light:'#b8f1ff', stats:{strength:5,defense:5,speed:8}, description:'A silver wolf that darts like a streak of lightning.', moves:[{name:'Spark Bite',power:7,accuracy:96},{name:'Thunder Dash',power:10,accuracy:85},{name:'Static Veil',power:4,accuracy:100,guard:3}], shape:'<path d="M54 107 43 48l37 21q20-10 40 0l39-25-14 65q4 26-20 39l-24-8-20 8q-26-11-27-41Z" fill="currentColor"/><path d="m62 72-13-37 34 25m48 10 21-34-7 43M59 126l-15 17 27-7m65-10 20 14-30-4" fill="currentColor" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="m108 61-10 22 13 3-9 21 24-30-14-2 8-14Z" fill="#d8fcff"/>' },
+      { id:'mossgolem', name:'Moss Golem', kind:'Ancient stone guardian', color:'#718c73', light:'#b9e0a5', stats:{strength:6,defense:9,speed:3}, description:'A gentle giant pieced together from old stones and roots.', moves:[{name:'Boulder Fist',power:9,accuracy:88},{name:'Quake Stomp',power:12,accuracy:70},{name:'Stone Wall',power:3,accuracy:100,guard:5}], shape:'<path d="m54 74 19-24 22 8 21-14 26 24-5 58-24 20-49-2-19-25Z" fill="currentColor"/><path d="m58 77-22-18 4 34 20 12m80-29 23-16-6 36-20 12m-69 26-15 18 32-7m48-11 20 17-34-8" fill="currentColor" stroke="currentColor" stroke-width="8" stroke-linejoin="round"/><path d="m74 62 12-17 9 18m27-1 14-17 1 26" fill="currentColor" stroke="#b9e0a5" stroke-width="4"/><path d="M91 110h17v19H91Z" fill="#435b4d"/>' },
+      { id:'obsidiangolem', name:'Obsidian Golem', kind:'Volcanic rock titan', color:'#665675', light:'#eea7ff', stats:{strength:8,defense:8,speed:3}, description:'A sturdy black-rock titan with glowing cracks under its armour.', moves:[{name:'Obsidian Smash',power:10,accuracy:85},{name:'Magma Break',power:13,accuracy:68},{name:'Basalt Guard',power:3,accuracy:100,guard:5}], shape:'<path d="m54 75 22-27 19 11 22-15 24 27-8 57-23 18-48-4-17-27Z" fill="currentColor"/><path d="m57 77-23-19 6 36 20 12m79-29 24-18-7 39-20 10m-68 27-15 18 31-7m50-11 20 17-35-8" fill="currentColor" stroke="currentColor" stroke-width="8" stroke-linejoin="round"/><path d="m75 64 12-19 10 18m27-2 12-18 2 25" fill="currentColor" stroke="#eea7ff" stroke-width="4"/><path d="m83 91 11 8-8 14m28-19-8 13 11 8" fill="none" stroke="#eea7ff" stroke-width="4" stroke-linecap="round"/>' },
+      { id:'reefraptor', name:'Reef Raptor', kind:'Aquatic reptile', color:'#39a7a5', light:'#a7fff0', stats:{strength:6,defense:5,speed:7}, description:'A clever shoreline hunter with a finned tail and quick claws.', moves:[{name:'Tide Claw',power:7,accuracy:94},{name:'Riptide Spin',power:10,accuracy:80},{name:'Current Guard',power:4,accuracy:100,guard:3}], shape:'<path d="M53 105 46 75l25 10 10-33 18 19 19-17 18 32 24-9-16 35-7 25-24 13H78l-21-18Z" fill="currentColor"/><path d="m69 77-5-30 25 25m41 3 17-27 1 38m-77 27-30-15 10 32 28 4m71-21 27-18-5 35-32 13" fill="currentColor" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/><path d="M102 130 93 153l14-10 12 12-3-25" fill="#a7fff0"/>' },
+      { id:'crystalsquirrel', name:'Crystal Squirrel', kind:'Rare · Crystal-tail beast', color:'#9b4dff', light:'#f5d2ff', rare:true, stats:{strength:6,defense:6,speed:7}, description:'A fierce purple squirrel with a huge crystal-spiked tail. Rare hatch: about 5%.', moves:[{name:'Crystal Claw',power:8,accuracy:94},{name:'Prism Tail',power:11,accuracy:82},{name:'Shard Guard',power:4,accuracy:100,guard:4}], shape:'<path d="M54 104 45 63l27 18q18-12 39-2l27-20-9 51q4 27-21 39l-21-8-22 8q-24-10-24-39Z" fill="currentColor"/><path d="M132 117q29-6 39 13l-17 5 19 10-23 1 12 18-25-9-4 20-13-20 7-21Z" fill="currentColor" stroke="#f0c6ff" stroke-width="3" stroke-linejoin="round"/><path d="m131 125 14 8-13 6m8 0 16 7-15 5m-80-76-11-30 29 24m45 4 19-31 3 40" fill="currentColor" stroke="#f0c6ff" stroke-width="5" stroke-linejoin="round"/><path d="m148 122 8 10-10 7 13 6-13 5 8 13" fill="none" stroke="#fff0ff" stroke-width="3"/>' }
+    ];
+    const ROOMS = [
+      { id:'crystal', name:'The Crystal Vault' }, { id:'ember', name:'The Ember Hall' },
+      { id:'moon', name:'The Moonlit Ruins' }, { id:'moss', name:'The Moss Grotto' }
     ];
     const DEFAULT_STATE = {
       trainerName: 'EdgeSquirrel',
       monster: null,
       previousMonsterId: '',
       level: 0,
-      trained: { strength: false, defense: false, speed: false },
+      trainingCount: 0,
       phase: 'egg',
       rival: null,
+      battle: null,
+      room: 'crystal',
       result: null,
       scores: []
     };
     let state = loadState();
+    let combatBusy = false;
 
     function loadState() {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
         if (!saved || typeof saved !== 'object') return Object.assign({}, DEFAULT_STATE);
-        return Object.assign({}, DEFAULT_STATE, saved, {
-          trained: Object.assign({}, DEFAULT_STATE.trained, saved.trained || {}),
-          scores: Array.isArray(saved.scores) ? saved.scores : []
+        const legacyCount = saved.trained ? Object.keys(saved.trained).filter(function (key) { return saved.trained[key]; }).length : 0;
+        const restored = Object.assign({}, DEFAULT_STATE, saved, {
+          trainingCount: Number.isFinite(Number(saved.trainingCount)) ? Math.max(0, Math.min(3, Number(saved.trainingCount))) : legacyCount,
+          scores: Array.isArray(saved.scores) ? saved.scores : [],
+          battle: saved.battle && typeof saved.battle === 'object' ? saved.battle : null
         });
+        if (restored.monster) restored.monster = restoreMonster(restored.monster);
+        if (restored.rival) restored.rival = restoreMonster(restored.rival);
+        if (!ROOMS.some(function (room) { return room.id === restored.room; })) restored.room = 'crystal';
+        if (restored.phase === 'battle' && !restored.battle) restored.phase = 'battleReady';
+        return restored;
       } catch {
         return Object.assign({}, DEFAULT_STATE);
       }
@@ -363,24 +396,32 @@
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-    function pickMonster(excludeId) {
-      let choices = MONSTERS.filter(function (monster) { return monster.id !== excludeId; });
-      if (!choices.length) choices = MONSTERS;
-      return choices[randomInt(0, choices.length - 1)];
+    function restoreMonster(monster) {
+      const template = MONSTERS.find(function (item) { return item.id === monster.id; });
+      if (template) return Object.assign({}, template, monster, { shape: template.shape, moves: template.moves, rare: template.rare || false });
+      const replacement = MONSTERS.find(function (item) { return !item.rare; });
+      return Object.assign({}, replacement, monster, { id: replacement.id, name: replacement.name, kind: replacement.kind, shape: replacement.shape, moves: replacement.moves, color: replacement.color, light: replacement.light, description: replacement.description });
     }
-    function freshTraining() {
-      return { strength: false, defense: false, speed: false };
+    function pickMonster(excludeId) {
+      const rare = MONSTERS.find(function (monster) { return monster.rare; });
+      if (rare && rare.id !== excludeId && randomInt(1, 100) <= 5) return rare;
+      let choices = MONSTERS.filter(function (monster) { return !monster.rare && monster.id !== excludeId; });
+      if (!choices.length) choices = MONSTERS.filter(function (monster) { return !monster.rare; });
+      return choices[randomInt(0, choices.length - 1)];
     }
     function monsterArt(monster) {
       if (!monster) {
         return '<svg viewBox="0 0 200 170" role="img" aria-label="A mysterious egg"><ellipse cx="100" cy="148" rx="49" ry="8" fill="#08080e" opacity=".45"/><path d="M100 22c-26 0-48 38-48 72 0 32 20 50 48 50s48-18 48-50c0-34-22-72-48-72Z" fill="#e8d9ff" stroke="#a88bff" stroke-width="5"/><path d="M100 28c-18 0-34 30-36 57 10-15 21-19 36-19s26 4 36 19c-2-27-18-57-36-57Z" fill="#fff" opacity=".56"/><path d="m96 82 10 13-9 10 8 12" fill="none" stroke="#714bd2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="76" cy="74" r="2" fill="#fff"/><circle cx="129" cy="58" r="2" fill="#fff"/><circle cx="137" cy="111" r="1.5" fill="#fff"/></svg>';
       }
-      return '<svg viewBox="0 0 200 170" role="img" aria-label="' + monster.name + ' illustration"><ellipse cx="100" cy="150" rx="52" ry="8" fill="#08080e" opacity=".45"/><circle cx="100" cy="88" r="69" fill="' + monster.color + '" opacity=".09"/><g>' + monster.shape + '</g><ellipse cx="84" cy="94" rx="5" ry="7" fill="#211b31"/><ellipse cx="116" cy="94" rx="5" ry="7" fill="#211b31"/><circle cx="85" cy="92" r="1.6" fill="#fff"/><circle cx="117" cy="92" r="1.6" fill="#fff"/><path d="M94 108c4 4 8 4 12 0" fill="none" stroke="#342541" stroke-width="3" stroke-linecap="round"/><path d="M62 91c5-3 11-3 16-1m44 0c5-2 11-2 16 1" fill="none" stroke="' + monster.light + '" stroke-width="2" stroke-linecap="round" opacity=".8"/></svg>';
+      return '<svg viewBox="0 0 200 170" role="img" aria-label="' + monster.name + ' illustration" style="color:' + monster.color + '"><ellipse cx="100" cy="150" rx="52" ry="8" fill="#08080e" opacity=".45"/><circle cx="100" cy="88" r="69" fill="' + monster.color + '" opacity=".09"/><g>' + monster.shape + '</g><ellipse cx="84" cy="94" rx="5" ry="7" fill="#211b31"/><ellipse cx="116" cy="94" rx="5" ry="7" fill="#211b31"/><circle cx="85" cy="92" r="1.6" fill="#fff"/><circle cx="117" cy="92" r="1.6" fill="#fff"/><path d="M94 108c4 4 8 4 12 0" fill="none" stroke="#342541" stroke-width="3" stroke-linecap="round"/><path d="M62 91c5-3 11-3 16-1m44 0c5-2 11-2 16 1" fill="none" stroke="' + monster.light + '" stroke-width="2" stroke-linecap="round" opacity=".8"/>' + (monster.rare ? '<path d="m151 42 4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1Z" fill="#fff0ff" opacity=".95"/><circle cx="55" cy="55" r="3" fill="#e8c4ff"/><circle cx="151" cy="91" r="2.5" fill="#fff"/>' : '') + '</svg>';
     }
     function renderArt() {
       const art = document.getElementById('monster-art');
       art.innerHTML = monsterArt(state.monster);
       art.setAttribute('aria-label', state.monster ? state.monster.name + ' illustration' : 'Mysterious egg illustration');
+      const room = ROOMS.find(function (item) { return item.id === state.room; }) || ROOMS[0];
+      document.getElementById('monster-stage').dataset.room = room.id;
+      document.getElementById('room-label').textContent = state.phase === 'egg' && !state.monster ? 'A room awaits your egg' : room.name;
     }
     function statTotal(stats) {
       return STAT_LIST.reduce(function (total, stat) { return total + Number(stats[stat.key] || 0); }, 0);
@@ -399,12 +440,10 @@
         return '<div class="stat-box" data-stat="' + stat.key + '"><div class="stat-head"><span>' + stat.label + '</span><strong class="stat-value">' + value + '</strong></div><div class="stat-track"><div class="stat-fill" style="width:' + width + '%"></div></div></div>';
       }).join('');
     }
-    function getTrainingCount() {
-      return STAT_LIST.filter(function (stat) { return state.trained[stat.key]; }).length;
-    }
+    function getTrainingCount() { return Number(state.trainingCount) || 0; }
     function renderWeekRoadmap() {
       const count = getTrainingCount();
-      const activeWeek = state.phase === 'battleReady' ? 4 : count + 1;
+      const activeWeek = state.phase === 'battleReady' || state.phase === 'battle' ? 4 : count + 1;
       document.querySelectorAll('.week-step').forEach(function (step) {
         const week = Number(step.dataset.week);
         step.classList.toggle('complete', state.phase !== 'egg' && week <= count);
@@ -412,7 +451,7 @@
       });
       const weekLabel = document.getElementById('week-label');
       if (state.phase === 'egg') weekLabel.textContent = 'EGG READY';
-      else if (state.phase === 'battleReady') weekLabel.textContent = 'WEEK 4 · BATTLE';
+      else if (state.phase === 'battleReady' || state.phase === 'battle') weekLabel.textContent = 'WEEK 4 · BATTLE';
       else weekLabel.textContent = 'WEEK ' + (count + 1) + ' / 4';
     }
     function escapeHtml(value) {
@@ -436,11 +475,33 @@
     }
     function renderRival() {
       const panel = document.getElementById('rival-panel');
-      panel.hidden = state.phase !== 'battleReady';
-      if (state.phase !== 'battleReady' || !state.rival) return;
+      panel.hidden = state.phase !== 'battleReady' && state.phase !== 'battle';
+      document.getElementById('battle-button').hidden = state.phase === 'battle';
+      document.getElementById('battle-screen').hidden = state.phase !== 'battle';
+      if ((state.phase !== 'battleReady' && state.phase !== 'battle') || !state.rival) return;
       document.getElementById('rival-art').innerHTML = monsterArt(state.rival);
       document.getElementById('rival-name').textContent = state.rival.name;
       document.getElementById('rival-stats').textContent = 'STR ' + state.rival.stats.strength + ' · DEF ' + state.rival.stats.defense + ' · SPD ' + state.rival.stats.speed;
+      if (state.phase === 'battle') renderBattle();
+    }
+    function renderBattle() {
+      if (!state.battle || !state.monster || !state.rival) return;
+      const battle = state.battle;
+      document.getElementById('player-combat-name').textContent = state.monster.name;
+      document.getElementById('enemy-combat-name').textContent = state.rival.name;
+      document.getElementById('player-combat-art').innerHTML = monsterArt(state.monster);
+      document.getElementById('enemy-combat-art').innerHTML = monsterArt(state.rival);
+      document.getElementById('player-hp-label').textContent = battle.playerHp + ' / ' + battle.playerMax;
+      document.getElementById('enemy-hp-label').textContent = battle.rivalHp + ' / ' + battle.rivalMax;
+      document.getElementById('player-hp-fill').style.width = Math.max(0, 100 * battle.playerHp / battle.playerMax) + '%';
+      document.getElementById('enemy-hp-fill').style.width = Math.max(0, 100 * battle.rivalHp / battle.rivalMax) + '%';
+      document.getElementById('battle-log').innerHTML = (battle.log || []).slice(-5).map(function (line) { return '<div>' + escapeHtml(line) + '</div>'; }).join('');
+      document.getElementById('move-controls').innerHTML = (state.monster.moves || []).map(function (move, index) {
+        return '<button class="move-button" type="button" data-move="' + index + '" ' + (combatBusy || battle.ended ? 'disabled' : '') + '><span class="move-name">' + escapeHtml(move.name) + '</span><span class="move-meta">Power ' + move.power + ' · Accuracy ' + move.accuracy + '%</span></button>';
+      }).join('');
+      document.querySelectorAll('.move-button').forEach(function (button) {
+        button.addEventListener('click', function () { playerAttack(Number(button.dataset.move)); });
+      });
     }
     function renderResult() {
       const panel = document.getElementById('result-panel');
@@ -482,18 +543,19 @@
         phaseTitle.textContent = state.previousMonsterId ? 'A new egg is waiting' : 'Ready when you are';
         phaseCopy.textContent = state.previousMonsterId ? 'Your last monster has fallen. Hatch a different monster to begin again at Level 0.' : 'Hatch your first egg to begin a run. A new monster starts at Level 0.';
       } else if (state.phase === 'training') {
-        phaseTitle.textContent = 'Week ' + (count + 1) + ' — choose one stat';
-        phaseCopy.textContent = 'Train each stat once across Weeks 1–3. Each training adds 1 point. Then Week 4 is battle week.';
+        phaseTitle.textContent = 'Week ' + (count + 1) + ' — choose a stat';
+        phaseCopy.textContent = 'Pick Strength, Defense, or Speed. You can choose the same stat more than once this cycle.';
         document.querySelectorAll('.train-button').forEach(function (button) {
-          const key = button.dataset.stat;
-          const done = Boolean(state.trained[key]);
-          button.disabled = done;
-          button.classList.toggle('done', done);
-          button.querySelector('.train-state').textContent = done ? 'Trained this cycle ✓' : 'Train this week · +1';
+          button.disabled = false;
+          button.classList.remove('done');
+          button.querySelector('.train-state').textContent = 'Choose this week · +1';
         });
       } else if (state.phase === 'battleReady') {
         phaseTitle.textContent = 'Week 4 — battle time';
-        phaseCopy.textContent = 'Your rival is ready. The fight is automatic: total stats plus a little battle luck decide the winner.';
+        phaseCopy.textContent = 'Your rival is ready. Start the battle, then choose a move each turn while your rival fights back.';
+      } else if (state.phase === 'battle') {
+        phaseTitle.textContent = 'Week 4 — choose your move';
+        phaseCopy.textContent = 'Your rival responds after every attack. Strength, Defense, and Speed affect your chances.';
       }
       const nameInput = document.getElementById('trainer-name');
       if (document.activeElement !== nameInput && nameInput.value !== state.trainerName) nameInput.value = state.trainerName;
@@ -516,20 +578,13 @@
     }
     function hatchEgg() {
       const selected = pickMonster(state.previousMonsterId);
-      state.monster = {
-        id: selected.id,
-        name: selected.name,
-        kind: selected.kind,
-        color: selected.color,
-        light: selected.light,
-        description: selected.description,
-        shape: selected.shape,
-        stats: Object.assign({}, selected.stats)
-      };
+      state.monster = Object.assign({}, selected, { stats: Object.assign({}, selected.stats) });
       state.level = 0;
-      state.trained = freshTraining();
+      state.trainingCount = 0;
       state.phase = 'training';
       state.rival = null;
+      state.battle = null;
+      state.room = ROOMS[randomInt(0, ROOMS.length - 1)].id;
       state.result = null;
       state.previousMonsterId = '';
       saveState();
@@ -538,67 +593,122 @@
     function createRival() {
       const rivalTemplate = pickMonster(state.monster ? state.monster.id : '');
       const growth = state.level + 1;
-      const rival = {
-        id: rivalTemplate.id,
-        name: rivalTemplate.name,
-        kind: rivalTemplate.kind,
-        color: rivalTemplate.color,
-        light: rivalTemplate.light,
-        description: rivalTemplate.description,
-        shape: rivalTemplate.shape,
-        stats: {
-          strength: rivalTemplate.stats.strength + growth,
-          defense: rivalTemplate.stats.defense + growth,
-          speed: rivalTemplate.stats.speed + growth
-        }
-      };
+      const rival = Object.assign({}, rivalTemplate, { stats: {
+        strength: rivalTemplate.stats.strength + growth,
+        defense: rivalTemplate.stats.defense + growth,
+        speed: rivalTemplate.stats.speed + growth
+      } });
       state.rival = rival;
       state.phase = 'battleReady';
     }
     function trainStat(key) {
-      if (state.phase !== 'training' || !state.monster || state.trained[key]) return;
+      if (state.phase !== 'training' || !state.monster || getTrainingCount() >= 3 || !STAT_LIST.some(function (item) { return item.key === key; })) return;
       state.monster.stats[key] += 1;
-      state.trained[key] = true;
-      if (getTrainingCount() === 3) createRival();
+      state.trainingCount = getTrainingCount() + 1;
+      if (state.trainingCount === 3) createRival();
       state.result = null;
       saveState();
       render();
     }
-    function battle() {
+    function startBattle() {
       if (state.phase !== 'battleReady' || !state.monster || !state.rival) return;
-      const playerRoll = randomInt(0, 4);
-      const rivalRoll = randomInt(0, 4);
-      const playerPower = statTotal(state.monster.stats) + playerRoll;
-      const rivalPower = statTotal(state.rival.stats) + rivalRoll;
-      const won = playerPower >= rivalPower;
-      const line = 'Battle power: ' + playerPower + ' to ' + rivalPower + ' (including a little luck).';
+      const playerMax = 42 + state.monster.stats.defense * 3 + state.level * 2;
+      const rivalMax = 42 + state.rival.stats.defense * 3 + state.level * 2;
+      state.battle = { playerMax:playerMax, playerHp:playerMax, rivalMax:rivalMax, rivalHp:rivalMax, playerGuard:0, rivalGuard:0, log:['The battle begins! Choose your first attack.'], ended:false };
+      state.phase = 'battle';
+      saveState();
+      render();
+    }
+    function addBattleLog(line) {
+      state.battle.log.push(line);
+      if (state.battle.log.length > 12) state.battle.log.shift();
+    }
+    function finishBattle(won) {
+      if (!state.battle || state.battle.ended) return;
+      state.battle.ended = true;
+      combatBusy = false;
       if (won) {
         const defeated = state.rival.name;
         state.level += 1;
         recordScore(state.level, state.monster.name);
-        state.trained = freshTraining();
+        state.trainingCount = 0;
         state.rival = null;
+        state.battle = null;
         state.phase = 'training';
-        state.result = { won: true, detail: state.monster.name + ' beat ' + defeated + '. Your new level is ' + state.level + '. ' + line };
+        state.result = { won:true, detail:state.monster.name + ' defeated ' + defeated + '! Your new level is ' + state.level + '. Train for three more weeks to face a stronger rival.' };
       } else {
         const lostMonster = state.monster.name;
         const lostAt = state.level;
         state.previousMonsterId = state.monster.id;
         state.monster = null;
         state.level = 0;
-        state.trained = freshTraining();
+        state.trainingCount = 0;
         state.rival = null;
+        state.battle = null;
         state.phase = 'egg';
-        state.result = { won: false, detail: lostMonster + ' finished at Level ' + lostAt + '. ' + line + ' Your best score is saved on this device.' };
+        state.result = { won:false, detail:lostMonster + ' fell at Level ' + lostAt + '. Your next egg will hold a different creature. Your best score is saved on this device.' };
       }
       saveState();
       render();
+    }
+    function rivalAttack() {
+      if (state.phase !== 'battle' || !state.battle || !state.monster || !state.rival) { combatBusy = false; return; }
+      const moves = state.rival.moves || [];
+      const move = moves[randomInt(0, moves.length - 1)];
+      document.getElementById('enemy-combatant').classList.add('attacking');
+      window.setTimeout(function () { document.getElementById('enemy-combatant').classList.remove('attacking'); }, 260);
+      const hitChance = Math.max(58, Math.min(97, move.accuracy + (state.rival.stats.speed - state.monster.stats.speed) * 2));
+      if (randomInt(1,100) > hitChance) {
+        addBattleLog(state.rival.name + ' used ' + move.name + ', but ' + state.monster.name + ' dodged it!');
+      } else if (move.guard) {
+        state.battle.rivalGuard += move.guard;
+        addBattleLog(state.rival.name + ' used ' + move.name + ' and raised a guard.');
+      } else {
+        const blocked = state.battle.playerGuard || 0;
+        const damage = Math.max(2, move.power + Math.floor(state.rival.stats.strength * .45) + randomInt(-2,2) - Math.floor(state.monster.stats.defense * .28) - blocked);
+        state.battle.playerGuard = 0;
+        state.battle.playerHp = Math.max(0, state.battle.playerHp - damage);
+        document.getElementById('player-combatant').classList.add('hit');
+        window.setTimeout(function () { document.getElementById('player-combatant').classList.remove('hit'); }, 320);
+        addBattleLog(state.rival.name + ' used ' + move.name + ' for ' + damage + ' damage.');
+      }
+      if (state.battle.playerHp <= 0) { saveState(); finishBattle(false); return; }
+      combatBusy = false;
+      saveState();
+      render();
+    }
+    function playerAttack(index) {
+      if (state.phase !== 'battle' || !state.battle || state.battle.ended || combatBusy) return;
+      const move = (state.monster.moves || [])[index];
+      if (!move) return;
+      combatBusy = true;
+      document.getElementById('player-combatant').classList.add('attacking');
+      window.setTimeout(function () { document.getElementById('player-combatant').classList.remove('attacking'); }, 260);
+      const hitChance = Math.max(58, Math.min(98, move.accuracy + (state.monster.stats.speed - state.rival.stats.speed) * 2));
+      if (randomInt(1,100) > hitChance) {
+        addBattleLog(state.monster.name + ' used ' + move.name + ', but ' + state.rival.name + ' dodged it!');
+      } else if (move.guard) {
+        state.battle.playerGuard += move.guard;
+        addBattleLog(state.monster.name + ' used ' + move.name + ' and raised a guard.');
+      } else {
+        const blocked = state.battle.rivalGuard || 0;
+        const damage = Math.max(2, move.power + Math.floor(state.monster.stats.strength * .45) + randomInt(-2,2) - Math.floor(state.rival.stats.defense * .28) - blocked);
+        state.battle.rivalGuard = 0;
+        state.battle.rivalHp = Math.max(0, state.battle.rivalHp - damage);
+        document.getElementById('enemy-combatant').classList.add('hit');
+        window.setTimeout(function () { document.getElementById('enemy-combatant').classList.remove('hit'); }, 320);
+        addBattleLog(state.monster.name + ' used ' + move.name + ' for ' + damage + ' damage.');
+      }
+      if (state.battle.rivalHp <= 0) { saveState(); finishBattle(true); return; }
+      saveState();
+      render();
+      window.setTimeout(rivalAttack, 480);
     }
     document.getElementById('hatch-button').addEventListener('click', hatchEgg);
     document.querySelectorAll('.train-button').forEach(function (button) {
       button.addEventListener('click', function () { trainStat(button.dataset.stat); });
     });
-    document.getElementById('battle-button').addEventListener('click', battle);
+    document.getElementById('battle-button').addEventListener('click', startBattle);
     document.getElementById('trainer-name').addEventListener('input', function (event) {
       state.trainerName = event.target.value.slice(0, 16) || 'Player';
       saveState();
