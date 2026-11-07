@@ -80,25 +80,155 @@
     grid.material.opacity = .2;
     scene.add(grid);
 
-    const roomColors = {
+    const environmentColors = {
       crystal:{ bg:'#171126',floor:'#201a30',rim:'#a884ff',light:'#8b68ff' },
+      'crystal-arena':{ bg:'#171126',floor:'#201a30',rim:'#a884ff',light:'#8b68ff' },
       ember:{ bg:'#211411',floor:'#2b1b19',rim:'#ed8259',light:'#e8663f' },
       moon:{ bg:'#10172a',floor:'#171e32',rim:'#698be2',light:'#5579e8' },
-      moss:{ bg:'#111d17',floor:'#19291f',rim:'#71ca91',light:'#56ad70' }
+      moss:{ bg:'#111d17',floor:'#19291f',rim:'#71ca91',light:'#56ad70' },
+      gym:{ bg:'#211b1a',floor:'#302725',rim:'#dfa96a',light:'#b97542' },
+      meadow:{ bg:'#14251c',floor:'#243627',rim:'#9bd479',light:'#70b56e' },
+      volcano:{ bg:'#2b1718',floor:'#38201b',rim:'#ff8a58',light:'#ff633f' },
+      ice:{ bg:'#14222f',floor:'#263846',rim:'#a4eaff',light:'#68b8df' },
+      forest:{ bg:'#142018',floor:'#202b22',rim:'#8fc28a',light:'#4f9364' },
+      coast:{ bg:'#14252e',floor:'#26363a',rim:'#7ce5ee',light:'#47aebb' }
     };
-    let currentRoom = '';
-    function setRoom(roomId) {
-      if (currentRoom === roomId) return;
-      currentRoom = roomId || 'crystal';
-      const colors = roomColors[currentRoom] || roomColors.crystal;
+    let environmentGroup = null;
+    let environmentKey = '';
+    function clearEnvironment() {
+      if (!environmentGroup) return;
+      scene.remove(environmentGroup);
+      environmentGroup.traverse(function (item) {
+        if (item.geometry) item.geometry.dispose();
+        if (item.material) {
+          if (Array.isArray(item.material)) item.material.forEach(function (entry) { entry.dispose(); });
+          else item.material.dispose();
+        }
+      });
+      environmentGroup = null;
+    }
+    function setEnvironment(environmentId, trainingFocus) {
+      const nextKey = (environmentId || 'crystal') + ':' + (trainingFocus || '');
+      if (environmentKey === nextKey) return;
+      environmentKey = nextKey;
+      clearEnvironment();
+      const kind = environmentId || 'crystal';
+      const colors = environmentColors[kind] || environmentColors.crystal;
       scene.background = new THREE.Color(colors.bg);
-      scene.fog = new THREE.Fog(colors.bg,16,31);
+      scene.fog = new THREE.Fog(colors.bg,14,30);
       floor.material.color.set(colors.floor);
       outerRing.material.color.set(colors.rim);
       outerRing.material.emissive.set(colors.light);
       rimLight.color.set(colors.light);
+      const isArena = ['meadow','volcano','ice','forest','coast','crystal-arena'].includes(kind);
+      platform.visible = !isArena && kind !== 'gym';
+      outerRing.visible = !isArena && kind !== 'gym';
+      centerRing.visible = kind === 'crystal' || kind === 'ember' || kind === 'moon' || kind === 'moss';
+      grid.visible = kind === 'crystal' || kind === 'ember' || kind === 'moon' || kind === 'moss';
+      environmentGroup = new THREE.Group();
+      scene.add(environmentGroup);
+      const g = environmentGroup;
+      function rock(x,y,z,sx,sy,sz,color,detail) {
+        return ico(g,THREE,color,x,y,z,sx,sy,sz,detail == null ? 0 : detail);
+      }
+      function tree(x,z,scale,color,haunted) {
+        const trunk = mesh(g,THREE,new THREE.CylinderGeometry(.13*scale,.22*scale,1.55*scale,5),haunted?'#292633':'#594139');
+        trunk.position.set(x,.76*scale,z);
+        trunk.rotation.z = haunted ? (x < 0 ? -.13 : .12) : 0;
+        for (let tier=0;tier<3;tier++) {
+          const crown = mesh(g,THREE,new THREE.ConeGeometry((.72-tier*.12)*scale,.9*scale,5),color);
+          crown.position.set(x,(1.32+tier*.43)*scale,z);
+        }
+      }
+      function peak(x,z,scale,color,snow) {
+        cone(g,THREE,color,x,scale*.9,z,.9*scale,1.8*scale);
+        if (snow) cone(g,THREE,snow,x,scale*1.48,z,.43*scale,.7*scale);
+      }
+      function shard(x,y,z,scale,color) {
+        const item = cone(g,THREE,color,x,y,z,.27*scale,1.55*scale,{emissive:color,emissiveIntensity:.28,metalness:.18});
+        item.rotation.z = (x < 0 ? -.12 : .12);
+      }
+
+      if (kind === 'gym') {
+        block(g,THREE,'#49352d',0,1.45,-3.45,8.8,3.1,.18);
+        block(g,THREE,'#76513d',0,2.92,-3.3,9,.12,.24);
+        for (let x=-3.5;x<=3.5;x+=1.75) block(g,THREE,'#352723',x,1.4,-3.27,.09,2.8,.16);
+        for (let x=-3.1;x<=3.1;x+=1.55) {
+          const glow = trainingFocus === 'speed' ? '#d3a1ff' : '#80604c';
+          block(g,THREE,glow,x,.035,-.7,.055,.025,4.2,{emissive:trainingFocus === 'speed' ? '#8c54b9' : '#000000',emissiveIntensity:.35});
+        }
+        const rackColor = trainingFocus === 'strength' ? '#f0c47b' : '#b6a99f';
+        for (const x of [-2.65,-1.9]) {
+          const post = mesh(g,THREE,new THREE.CylinderGeometry(.055,.055,1.42,6),rackColor,{metalness:.68,roughness:.38,emissive:trainingFocus === 'strength' ? '#87572a' : '#000000',emissiveIntensity:.28});
+          post.position.set(x,.72,-1.75);
+        }
+        const bar = mesh(g,THREE,new THREE.CylinderGeometry(.055,.055,.95,8),rackColor,{metalness:.72,roughness:.35});
+        bar.position.set(-2.27,1.25,-1.75); bar.rotation.z=Math.PI/2;
+        for (const x of [-2.68,-1.86]) {
+          const weight = mesh(g,THREE,new THREE.CylinderGeometry(.28,.28,.12,8),trainingFocus === 'strength' ? '#d49a4f' : '#6d7782',{metalness:.48});
+          weight.position.set(x,1.25,-1.75); weight.rotation.z=Math.PI/2;
+        }
+        const dummyColor = trainingFocus === 'defense' ? '#e9bf82' : '#8d6b57';
+        const dummy = mesh(g,THREE,new THREE.CylinderGeometry(.25,.32,.9,6),dummyColor,{emissive:trainingFocus === 'defense' ? '#77512e' : '#000000',emissiveIntensity:.28});
+        dummy.position.set(2.42,.92,-1.9);
+        const head = ico(g,THREE,dummyColor,2.42,1.55,-1.9,.3,.31,.27,0);
+        for (const side of [-1,1]) limb(g,THREE,dummyColor,[2.42+side*.2,1.2,-1.9],[2.42+side*.52,.87,-1.85],.09);
+        block(g,THREE,'#d2b18d',2.42,.09,-1.9,.85,.12,.6);
+        for (const x of [-3.5,3.5]) {
+          const lamp = mesh(g,THREE,new THREE.SphereGeometry(.13,8,6),trainingFocus === 'speed' ? '#d9c0ff' : '#f1c982',{emissive:trainingFocus === 'speed' ? '#8d62db' : '#9d6237',emissiveIntensity:.8});
+          lamp.position.set(x,2.42,-3.16);
+        }
+      } else if (kind === 'meadow') {
+        rock(-2.7,.05,-3.3,2.2,.75,.45,'#3e7651'); rock(2.7,.04,-3.7,2.5,.8,.5,'#4c8153');
+        tree(-3.4,-2.7,.76,'#57915d',false); tree(3.3,-3.15,.9,'#568e5a',false); tree(-1.7,-4,.58,'#669f65',false);
+        for (let i=0;i<9;i++) {
+          const flower=ico(g,THREE,i%2?'#f6d47d':'#d7b5ff',-3.5+i*.86,.13,-1.7-(i%3)*.4,.08,.13,.08,0);
+          flower.rotation.z=i*.2;
+        }
+        const sun=mesh(g,THREE,new THREE.SphereGeometry(.48,10,8),'#f4d993',{emissive:'#b47d3a',emissiveIntensity:.55}); sun.position.set(2.6,3.4,-4.5);
+      } else if (kind === 'volcano') {
+        peak(-2.5,-4.3,2.55,'#4c2824','#ff9361'); peak(2.9,-4.8,1.65,'#382322','#9a5142');
+        rock(-3,.08,-2.5,1.5,.25,.7,'#742d25'); rock(2.8,.07,-2.4,1.35,.22,.72,'#8f3829');
+        for (let i=0;i<6;i++) {
+          const lava=block(g,THREE,'#ff7549',-2.35+i*.92,.13,-1.65-(i%2)*.3,.055,.075,1.35,{emissive:'#e84124',emissiveIntensity:1.3});
+          lava.rotation.y=(i%2 ? .22 : -.18);
+        }
+        const glow = new THREE.PointLight(0xff4b26,8,9); glow.position.set(0,1.4,-2.8); g.add(glow);
+      } else if (kind === 'ice') {
+        peak(-3.1,-4.3,2.25,'#47728a','#dbf7ff'); peak(0,-4.8,2.8,'#527f97','#effcff'); peak(3,-4.1,2,'#355d79','#c5edfa');
+        shard(-2.8,.7,-2.6,1.1,'#79d9ec'); shard(2.65,.72,-2.4,1.2,'#a5ecfa');
+        rock(-3.7,.1,-1.9,.9,.28,.5,'#739db0'); rock(3.7,.1,-2,.8,.32,.55,'#557f9b');
+      } else if (kind === 'forest') {
+        for (let i=0;i<7;i++) tree(-3.7+i*1.23,-3.1-(i%2)*.55,.75+(i%3)*.12,i%2?'#34583e':'#273e35',true);
+        for (let i=0;i<5;i++) {
+          const wisp=mesh(g,THREE,new THREE.SphereGeometry(.09,7,6),i%2?'#a3f1c4':'#b1baff',{emissive:i%2?'#3aaf77':'#585fc4',emissiveIntensity:1.25,transparent:true,opacity:.8});
+          wisp.position.set(-2.7+i*1.3,.65+(i%2)*.55,-1.6-(i%3)*.35);
+        }
+        const moon=mesh(g,THREE,new THREE.SphereGeometry(.42,10,8),'#c8d5cf',{emissive:'#809c9e',emissiveIntensity:.75}); moon.position.set(2.65,3.35,-4.6);
+      } else if (kind === 'coast') {
+        for (let i=0;i<5;i++) {
+          const wave=block(g,THREE,i%2?'#397f91':'#4b9eaa',-3.2+i*1.6,.18,-3.8+(i%2)*.35,1.5,.11,.14,{emissive:'#1b5968',emissiveIntensity:.35});
+          wave.rotation.y=-.06;
+        }
+        rock(-3.45,.55,-2.7,1.25,1.05,.95,'#766b62'); rock(3.35,.62,-2.9,1.35,1.1,.92,'#5e6465');
+        rock(-3.1,1.34,-2.7,.85,.35,.8,'#879174'); rock(3.2,1.39,-2.9,.9,.34,.78,'#899479');
+        for (let i=0;i<4;i++) block(g,THREE,'#b2ecdf',-2.4+i*1.55,.22,-2.2+(i%2)*.3,.78,.035,.07,{emissive:'#3d9ba5',emissiveIntensity:.65});
+      } else if (kind === 'crystal') {
+        for (let i=0;i<9;i++) {
+          const x=-3.6+i*.9; const h=.75+(i%4)*.35;
+          shard(x,h/2,-2.65-(i%3)*.3,h,i%2?'#9476e8':'#54c6d3');
+        }
+        for (let i=0;i<5;i++) {
+          const ceiling=cone(g,THREE,i%2?'#634b91':'#437c8b',-3+i*1.5,3.35,-3.1,.4,.95,{emissive:i%2?'#634b91':'#437c8b',emissiveIntensity:.2});
+          ceiling.rotation.z=Math.PI;
+        }
+      } else {
+        for (let i=0;i<7;i++) shard(-3+i,.55+(i%3)*.18,-2.8-(i%2)*.35,.8+(i%2)*.3,i%2?'#a78bff':'#66d7db');
+        const rune=mesh(g,THREE,new THREE.TorusGeometry(.82,.035,5,16),'#d6bcff',{emissive:'#8d62db',emissiveIntensity:.75});
+        rune.position.set(0,1.35,-2.25); rune.rotation.x=.7;
+      }
     }
-    setRoom('crystal');
+    setEnvironment('crystal');
 
     const models = { single:null, player:null, rival:null };
     let snapshot = null;
@@ -130,8 +260,9 @@
     function setState(nextSnapshot) {
       snapshot = nextSnapshot || null;
       if (!snapshot) return;
-      setRoom(snapshot.room);
       const fighting = snapshot.phase === 'battleReady' || snapshot.phase === 'battle';
+      const stageEnvironment = isBattle ? (fighting ? (snapshot.arena === 'crystal' ? 'crystal-arena' : snapshot.arena) : snapshot.room) : (snapshot.phase === 'training' ? 'gym' : snapshot.room);
+      setEnvironment(stageEnvironment, !isBattle && snapshot.phase === 'training' ? snapshot.trainingFocus : '');
       if (isBattle && fighting) {
         setModel('player',snapshot.monster,1);
         setModel('rival',snapshot.rival,-1);

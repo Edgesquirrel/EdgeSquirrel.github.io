@@ -75,6 +75,12 @@
     .monster-stage[data-room="ember"] { background: radial-gradient(ellipse at 17% 75%,rgba(255,118,72,.2),transparent 42%),linear-gradient(145deg,#261717,#101018 74%); }
     .monster-stage[data-room="moon"] { background: radial-gradient(ellipse at 82% 18%,rgba(96,143,255,.22),transparent 43%),linear-gradient(145deg,#151a31,#101018 74%); }
     .monster-stage[data-room="moss"] { background: radial-gradient(ellipse at 18% 68%,rgba(74,192,134,.17),transparent 44%),linear-gradient(145deg,#14251e,#101018 74%); }
+    .monster-stage[data-room="gym"] { background:radial-gradient(ellipse at 50% 20%,rgba(195,145,92,.15),transparent 48%),linear-gradient(145deg,#211b1a,#101018 76%); }
+    .monster-stage[data-room="meadow"] { background:radial-gradient(ellipse at 50% 18%,rgba(105,178,118,.2),transparent 50%),linear-gradient(145deg,#14251c,#101018 76%); }
+    .monster-stage[data-room="volcano"] { background:radial-gradient(ellipse at 50% 28%,rgba(232,96,54,.25),transparent 48%),linear-gradient(145deg,#2b1718,#101018 78%); }
+    .monster-stage[data-room="ice"] { background:radial-gradient(ellipse at 52% 17%,rgba(103,178,222,.23),transparent 48%),linear-gradient(145deg,#14222f,#101018 78%); }
+    .monster-stage[data-room="forest"] { background:radial-gradient(ellipse at 52% 20%,rgba(80,146,96,.18),transparent 48%),linear-gradient(145deg,#142018,#101018 78%); }
+    .monster-stage[data-room="coast"] { background:radial-gradient(ellipse at 52% 25%,rgba(73,162,188,.2),transparent 48%),linear-gradient(145deg,#14252e,#101018 78%); }
     .room-label { position:absolute; z-index:2; top:12px; left:14px; padding:6px 9px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background:rgba(8,8,14,.55); color:#d6c8ff; font-size:8px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
     .monster-stage::after { position: absolute; right: -80px; bottom: -140px; width: 250px; height: 250px; border: 1px solid rgba(125,228,232,.09); border-radius: 50%; box-shadow: 0 0 0 24px rgba(125,228,232,.025), 0 0 0 50px rgba(125,228,232,.02); content: ""; pointer-events: none; }
     .monster-art { position: relative; display: grid; min-height: 170px; place-items: center; }
@@ -162,6 +168,8 @@
     @keyframes impactFlash { 10%{opacity:.75} 100%{opacity:0} }
     .scene-caption { position:absolute; z-index:3; bottom:10px; left:50%; transform:translateX(-50%); max-width:90%; padding:7px 12px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background:rgba(8,8,14,.75); color:#ddd5f2; font-size:9px; white-space:nowrap; }
     .stage-combat-controls { padding:12px 3px 4px; }
+    .stage-start-row { display:flex; justify-content:center; padding:12px 8px 14px; }
+    .stage-start-row .battle-button { margin:0; }
     .turn-label { margin:0 0 9px; color:var(--cyan); font-size:10px; font-weight:800; }
     .move-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
     .move-button { min-height:63px; }
@@ -316,6 +324,7 @@
               </div>
               <div class="scene-caption" id="scene-caption">Your monster is waiting in the hatch room</div>
             </div>
+            <div class="stage-start-row" id="stage-start-row" hidden><button class="button battle-button" id="battle-button" type="button">Start battle</button></div>
             <div class="stage-combat-controls" id="stage-combat-controls" hidden>
               <p class="turn-label" id="turn-label">Choose an attack</p>
               <div class="move-controls" id="move-controls"></div>
@@ -324,7 +333,7 @@
           </section>
         </div>
 
-        <div class="phase-panel">
+        <div class="phase-panel" id="phase-panel">
           <div class="phase-heading">
             <div>
               <h2 id="phase-title">Ready when you are</h2>
@@ -346,17 +355,6 @@
             </button>
           </div>
           <button class="button button-primary hatch-button" id="hatch-button" type="button">Hatch your first egg</button>
-          <div id="rival-panel" hidden>
-            <div class="rival-card">
-              <div class="rival-art" id="rival-art" aria-hidden="true"></div>
-              <div>
-                <p class="rival-label">Week four rival</p>
-                <h3 class="rival-name" id="rival-name">Rival</h3>
-                <p class="rival-stats" id="rival-stats"></p>
-              </div>
-            </div>
-            <button class="button battle-button" id="battle-button" type="button">Battle rival</button>
-          </div>
           <div id="result-panel" aria-live="polite"></div>
         </div>
       </section>
@@ -419,6 +417,11 @@
       { id:'crystal', name:'The Crystal Vault' }, { id:'ember', name:'The Ember Hall' },
       { id:'moon', name:'The Moonlit Ruins' }, { id:'moss', name:'The Moss Grotto' }
     ];
+    const BATTLE_ARENAS = [
+      { id:'meadow', name:'Open Meadow' }, { id:'volcano', name:'Volcano Ridge' },
+      { id:'ice', name:'Icy Mountain Pass' }, { id:'forest', name:'Haunted Forest' },
+      { id:'coast', name:'Coastal Cliffs' }, { id:'crystal', name:'Crystal Cavern' }
+    ];
     const ELEMENT_ADVANTAGES = {
       Fire:['Grass','Ice','Metal'], Water:['Fire','Earth'], Grass:['Water','Earth'],
       Earth:['Electric','Fire','Poison'], Light:['Dark','Ghost'], Dark:['Psychic'],
@@ -435,6 +438,8 @@
       rival: null,
       battle: null,
       room: 'crystal',
+      arena: '',
+      trainingFocus: '',
       result: null,
       scores: []
     };
@@ -454,6 +459,10 @@
         if (restored.monster) restored.monster = restoreMonster(restored.monster);
         if (restored.rival) restored.rival = restoreMonster(restored.rival);
         if (!ROOMS.some(function (room) { return room.id === restored.room; })) restored.room = 'crystal';
+        if (!BATTLE_ARENAS.some(function (arena) { return arena.id === restored.arena; })) {
+          restored.arena = restored.phase === 'battleReady' || restored.phase === 'battle' ? BATTLE_ARENAS[randomInt(0,BATTLE_ARENAS.length - 1)].id : '';
+        }
+        if (!['strength','defense','speed',''].includes(restored.trainingFocus)) restored.trainingFocus = '';
         if (restored.phase === 'battle' && !restored.battle) restored.phase = 'battleReady';
         return restored;
       } catch {
@@ -503,8 +512,10 @@
       fallback.hidden = false;
       document.getElementById('monster-art').setAttribute('aria-label', state.monster ? state.monster.name + ' preview' : 'Mysterious egg preview');
       const room = ROOMS.find(function (item) { return item.id === state.room; }) || ROOMS[0];
-      document.getElementById('monster-stage').dataset.room = room.id;
-      document.getElementById('room-label').textContent = state.phase === 'egg' && !state.monster ? 'A room awaits your egg' : room.name;
+      const arena = BATTLE_ARENAS.find(function (item) { return item.id === state.arena; });
+      const isBattle = state.phase === 'battleReady' || state.phase === 'battle';
+      document.getElementById('monster-stage').dataset.room = isBattle ? (arena ? arena.id : 'meadow') : (state.phase === 'training' ? 'gym' : room.id);
+      document.getElementById('room-label').textContent = isBattle ? (arena ? arena.name : 'Battle Arena') : (state.phase === 'training' ? 'TRAINING GYM' : room.name);
     }
     function statTotal(stats) {
       return STAT_LIST.reduce(function (total, stat) { return total + Number(stats[stat.key] || 0); }, 0);
@@ -578,19 +589,14 @@
       }).join('');
     }
     function renderRival() {
-      const panel = document.getElementById('rival-panel');
       const battleScene = state.phase === 'battleReady' || state.phase === 'battle';
-      panel.hidden = state.phase !== 'battleReady';
       document.getElementById('battle-button').hidden = state.phase !== 'battleReady';
+      document.getElementById('stage-start-row').hidden = state.phase !== 'battleReady';
       document.getElementById('battle-screen').hidden = !battleScene;
       document.getElementById('monster-view').hidden = battleScene;
       document.getElementById('monster-stage').classList.toggle('battle-active', battleScene);
       if (!battleScene || !state.rival) return;
       if (!state.battle) state.battle = createBattleState();
-      document.getElementById('room-label').textContent = 'BATTLE ARENA';
-      document.getElementById('rival-art').innerHTML = monsterArt(state.rival);
-      document.getElementById('rival-name').textContent = state.rival.name;
-      document.getElementById('rival-stats').textContent = state.rival.element + ' rival · ATK ' + attackPower(state.rival) + ' · DEF ' + state.rival.stats.defense;
       renderBattle();
     }
     function renderBattle() {
@@ -600,7 +606,7 @@
       document.getElementById('enemy-combat-name').textContent = state.rival.name;
       document.getElementById('player-element-name').textContent = state.monster.element + ' · ATK ' + attackPower(state.monster);
       document.getElementById('enemy-element-name').textContent = state.rival.element + ' · ATK ' + attackPower(state.rival);
-      document.getElementById('scene-caption').textContent = state.phase === 'battleReady' ? state.monster.name + ' faces ' + state.rival.name + ' · choose Battle rival to begin' : 'Week 4 duel · choose a move, then your rival responds';
+      document.getElementById('scene-caption').textContent = state.phase === 'battleReady' ? state.monster.name + ' faces ' + state.rival.name + ' · ' + (BATTLE_ARENAS.find(function (item) { return item.id === state.arena; }) || BATTLE_ARENAS[0]).name : 'Week 4 duel · choose a move, then your rival responds';
       const controls = document.getElementById('stage-combat-controls');
       controls.hidden = state.phase !== 'battle';
       if (!battle) return;
@@ -639,7 +645,7 @@
       panel.append(box);
     }
     function update3DScene() {
-      const snapshot = { phase:state.phase, room:state.room, monster:state.monster, rival:state.rival, battle:state.battle, level:state.level };
+      const snapshot = { phase:state.phase, room:state.room, arena:state.arena, trainingFocus:state.trainingFocus, monster:state.monster, rival:state.rival, battle:state.battle, level:state.level };
       window.hatch3dSnapshot = snapshot;
       if (window.hatch3dSetState) window.hatch3dSetState(snapshot);
     }
@@ -660,10 +666,12 @@
       if (state.monster) elementChip.textContent = state.monster.element + ' element' + (state.monster.rare ? ' · Rare hatch · 5%' : '');
       const phaseTitle = document.getElementById('phase-title');
       const phaseCopy = document.getElementById('phase-copy');
+      const phasePanel = document.getElementById('phase-panel');
       const trainControls = document.getElementById('training-controls');
       const hatchButton = document.getElementById('hatch-button');
       const battleButton = document.getElementById('battle-button');
       const count = getTrainingCount();
+      phasePanel.hidden = state.phase === 'battleReady' || state.phase === 'battle';
       trainControls.hidden = state.phase !== 'training';
       hatchButton.hidden = state.phase !== 'egg';
       hatchButton.textContent = state.previousMonsterId ? 'Hatch a new monster' : 'Hatch your first egg';
@@ -715,6 +723,8 @@
       state.phase = 'training';
       state.rival = null;
       state.battle = null;
+      state.arena = '';
+      state.trainingFocus = '';
       state.room = ROOMS[randomInt(0, ROOMS.length - 1)].id;
       state.result = null;
       state.previousMonsterId = '';
@@ -730,6 +740,7 @@
         speed: rivalTemplate.stats.speed + growth
       } });
       state.rival = rival;
+      state.arena = BATTLE_ARENAS[randomInt(0, BATTLE_ARENAS.length - 1)].id;
       state.battle = createBattleState();
       state.phase = 'battleReady';
     }
@@ -741,6 +752,7 @@
     function trainStat(key) {
       if (state.phase !== 'training' || !state.monster || getTrainingCount() >= 3 || !STAT_LIST.some(function (item) { return item.key === key; })) return;
       state.monster.stats[key] += 1;
+      state.trainingFocus = key;
       state.trainingCount = getTrainingCount() + 1;
       if (state.trainingCount === 3) createRival();
       state.result = null;
@@ -774,6 +786,8 @@
         state.level += 1;
         recordScore(state.level, state.monster.name);
         state.trainingCount = 0;
+        state.trainingFocus = '';
+        state.arena = '';
         state.rival = null;
         state.battle = null;
         state.phase = 'training';
@@ -785,6 +799,9 @@
         state.monster = null;
         state.level = 0;
         state.trainingCount = 0;
+        state.trainingFocus = '';
+        state.arena = '';
+        state.room = ROOMS[randomInt(0, ROOMS.length - 1)].id;
         state.rival = null;
         state.battle = null;
         state.phase = 'egg';
