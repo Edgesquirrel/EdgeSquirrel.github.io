@@ -7,6 +7,7 @@
   const ATTACK_FRAME_MS = 95;
   const ATTACK_DURATION = ATTACK_FRAMES * ATTACK_FRAME_MS;
   const attacks = { player:0, rival:0 };
+  const frameLoads = new Map();
   let snapshot = window.monsterSpriteSnapshot || null;
 
   function safeId(monster) {
@@ -16,16 +17,46 @@
 
   function pathFor(monster, animation, frame) {
     const safeFrame = String(frame).padStart(2, '0');
-    return safeId(monster) + '/' + animation + '/frame-' + safeFrame + '.png';
+    return '/' + safeId(monster) + '/' + animation + '/frame-' + safeFrame + '.png';
+  }
+
+  function loadFrame(path) {
+    if (!frameLoads.has(path)) {
+      frameLoads.set(path, new Promise(function (resolve) {
+        const preload = new Image();
+        preload.onload = function () { resolve(true); };
+        preload.onerror = function () { resolve(false); };
+        preload.src = path;
+      }));
+    }
+    return frameLoads.get(path);
+  }
+
+  function warmAnimation(monster, animation, count) {
+    if (!monster) return;
+    for (let frame = 1; frame <= count; frame += 1) {
+      loadFrame(pathFor(monster, animation, frame));
+    }
+  }
+
+  function warmSnapshot() {
+    if (!snapshot) return;
+    warmAnimation(snapshot.monster, 'idle', IDLE_FRAMES);
+    warmAnimation(snapshot.rival, 'idle', IDLE_FRAMES);
   }
 
   function setFrame(image, monster, animation, frame) {
     if (!image || !monster) return;
     const path = pathFor(monster, animation, frame);
-    if (image.dataset.spriteFrame !== path) {
+    if (image.dataset.spriteFrame === path || image.dataset.spritePending === path) return;
+    image.dataset.spritePending = path;
+    loadFrame(path).then(function (loaded) {
+      if (image.dataset.spritePending !== path) return;
+      image.dataset.spritePending = '';
+      if (!loaded) return;
       image.dataset.spriteFrame = path;
       image.src = path;
-    }
+    });
   }
 
   function frameFor(monster, side, now, maxFrames) {
@@ -68,10 +99,16 @@
 
   window.monsterSpritesSetState = function (nextSnapshot) {
     snapshot = nextSnapshot || null;
+    warmSnapshot();
   };
   window.monsterSpritesAttack = function (side) {
-    if (side === 'player' || side === 'rival') attacks[side] = performance.now();
+    if (side === 'player' || side === 'rival') {
+      attacks[side] = performance.now();
+      const monster = snapshot && (side === 'player' ? snapshot.monster : snapshot.rival);
+      warmAnimation(monster, 'attack', ATTACK_FRAMES);
+    }
   };
 
+  warmSnapshot();
   window.requestAnimationFrame(update);
 })();

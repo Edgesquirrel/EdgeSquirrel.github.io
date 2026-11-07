@@ -527,7 +527,7 @@
       const id = known ? monster.id : 'ember-drake';
       const kind = action === 'attack' ? 'attack' : 'idle';
       const number = Math.max(1, Number(frame) || 1);
-      return id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png';
+      return '/' + id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png';
     }
     function renderArt() {
       const fallback = document.getElementById('art-fallback');
@@ -536,8 +536,6 @@
       if (fallback.dataset.monsterId !== shownId) {
         fallback.innerHTML = previewPath ? '<img id="single-monster-sprite" src="' + previewPath + '" alt="' + escapeHtml(state.monster.name) + '">' : monsterArt(null);
         fallback.dataset.monsterId = shownId;
-        const fallbackImage = fallback.querySelector('img');
-        if (fallbackImage) fallbackImage.addEventListener('error', function () { fallbackImage.hidden = true; });
       }
       fallback.hidden = false;
       document.getElementById('monster-art').setAttribute('aria-label', state.monster ? state.monster.name + ' preview' : 'Mysterious egg preview');
