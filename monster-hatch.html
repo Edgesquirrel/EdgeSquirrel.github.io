@@ -159,6 +159,10 @@
     .battle-model-fallback[hidden] { display:none; }
     .battle-model-fallback img { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 15px 18px rgba(0,0,0,.52)); }
     .battle-model-fallback img:last-child { transform:scaleX(-1); }
+    .battle-model-fallback img.attacking-player { animation:fallbackPlayerLunge .52s cubic-bezier(.2,.8,.2,1); }
+    .battle-model-fallback img.attacking-rival { animation:fallbackRivalLunge .52s cubic-bezier(.2,.8,.2,1); }
+    @keyframes fallbackPlayerLunge { 45%{transform:translateX(22px) scale(1.04)} }
+    @keyframes fallbackRivalLunge { 45%{transform:translateX(-22px) scaleX(-1) scale(1.04)} }
     .stage-hud { position:absolute; z-index:3; inset:12px 12px auto; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:9px; pointer-events:none; }
     .stage-fighter { min-width:0; padding:9px 11px; border:1px solid rgba(255,255,255,.15); border-radius:12px; background:rgba(8,8,14,.82); backdrop-filter:blur(9px); }
     .stage-fighter.enemy { justify-self:end; width:min(100%,250px); }
@@ -309,7 +313,7 @@
         <div class="monster-stage" id="monster-stage" data-room="crystal">
           <span class="room-label" id="room-label">The Crystal Vault</span>
           <div class="monster-view" id="monster-view">
-            <div class="monster-art" id="monster-art" aria-hidden="true"><canvas id="monster-canvas" aria-label="Three dimensional monster preview"></canvas><div class="art-fallback" id="art-fallback" hidden></div></div>
+            <div class="monster-art" id="monster-art" aria-hidden="true"><canvas id="shared-3d-canvas" aria-label="Three dimensional monster preview and battle"></canvas><div class="art-fallback" id="art-fallback" hidden></div></div>
             <div class="monster-info">
               <p class="monster-kind" id="monster-kind">Waiting to hatch</p>
               <h2 class="monster-name" id="monster-name">A little egg</h2>
@@ -320,7 +324,6 @@
           </div>
           <section class="battle-screen stage-battle" id="battle-screen" aria-label="Battle arena" hidden>
             <div class="stage-scene">
-              <canvas id="battle-canvas" aria-label="Animated three dimensional monster battle"></canvas>
               <div class="battle-model-fallback" id="battle-art-fallback" hidden aria-hidden="true"><img id="player-model-fallback" alt=""><img id="rival-model-fallback" alt=""></div>
               <div class="three-warning" id="three-warning" hidden>3D display unavailable. Your game progress and battle controls still work.</div>
               <div class="effect-flash" id="effect-flash"></div>
@@ -450,7 +453,8 @@
       scores: []
     };
     let state = loadState();
-    let combatBusy = false;
+    let combatBusy = !!(state.phase === 'battle' && state.battle && state.battle.pendingRival);
+    let rivalTurnTimer = 0;
 
     function loadState() {
       try {
@@ -525,13 +529,13 @@
       fallback.innerHTML = previewPath ? '<img src="' + previewPath + '" alt="' + escapeHtml(state.monster.name) + ' 3D model">' : monsterArt(null);
       const fallbackImage = fallback.querySelector('img');
       if (fallbackImage) fallbackImage.addEventListener('error', function () { fallback.innerHTML = monsterArt(state.monster); });
-      fallback.hidden = false;
+      if (!window.hatch3dReady) fallback.hidden = false;
       document.getElementById('monster-art').setAttribute('aria-label', state.monster ? state.monster.name + ' preview' : 'Mysterious egg preview');
       const room = ROOMS.find(function (item) { return item.id === state.room; }) || ROOMS[0];
       const arena = BATTLE_ARENAS.find(function (item) { return item.id === state.arena; });
       const isBattle = state.phase === 'battleReady' || state.phase === 'battle';
       const battleFallback = document.getElementById('battle-art-fallback');
-      battleFallback.hidden = !isBattle;
+      if (!window.hatch3dReady) battleFallback.hidden = !isBattle;
       if (isBattle && state.monster && state.rival) {
         const playerImage = document.getElementById('player-model-fallback');
         const rivalImage = document.getElementById('rival-model-fallback');
@@ -615,6 +619,10 @@
       }).join('');
     }
     function renderRival() {
+      if ((state.phase === 'battleReady' || state.phase === 'battle') && state.monster && !state.rival) {
+        createRival();
+        saveState();
+      }
       const battleScene = state.phase === 'battleReady' || state.phase === 'battle';
       document.getElementById('battle-button').hidden = state.phase !== 'battleReady';
       document.getElementById('stage-start-row').hidden = state.phase !== 'battleReady';
@@ -742,6 +750,9 @@
       state.scores = state.scores.slice(0, 10);
     }
     function hatchEgg() {
+      window.clearTimeout(rivalTurnTimer);
+      rivalTurnTimer = 0;
+      combatBusy = false;
       const selected = pickMonster(state.previousMonsterId);
       state.monster = Object.assign({}, selected, { stats: Object.assign({}, selected.stats) });
       state.level = 0;
@@ -773,7 +784,7 @@
     function createBattleState() {
       const playerMax = maximumHealth(state.monster, state.level);
       const rivalMax = maximumHealth(state.rival, state.level);
-      return { playerMax:playerMax, playerHp:playerMax, rivalMax:rivalMax, rivalHp:rivalMax, playerGuard:0, rivalGuard:0, log:['Your rival is ready. Choose Battle rival when you are ready.'], ended:false };
+      return { playerMax:playerMax, playerHp:playerMax, rivalMax:rivalMax, rivalHp:rivalMax, playerGuard:0, rivalGuard:0, pendingRival:false, log:['Your rival is ready. Choose Battle rival when you are ready.'], ended:false };
     }
     function trainStat(key) {
       if (state.phase !== 'training' || !state.monster || getTrainingCount() >= 3 || !STAT_LIST.some(function (item) { return item.key === key; })) return;
@@ -787,6 +798,9 @@
     }
     function startBattle() {
       if (state.phase !== 'battleReady' || !state.monster || !state.rival) return;
+      window.clearTimeout(rivalTurnTimer);
+      rivalTurnTimer = 0;
+      combatBusy = false;
       state.battle = createBattleState();
       state.battle.log = ['The battle begins! Choose your first attack.'];
       state.phase = 'battle';
@@ -797,6 +811,15 @@
       state.battle.log.push(line);
       if (state.battle.log.length > 12) state.battle.log.shift();
     }
+    function animateFallbackAttack(side) {
+      const fallback = document.getElementById(side === 'player' ? 'player-model-fallback' : 'rival-model-fallback');
+      if (!fallback || fallback.closest('[hidden]')) return;
+      const className = side === 'player' ? 'attacking-player' : 'attacking-rival';
+      fallback.classList.remove(className);
+      void fallback.offsetWidth;
+      fallback.classList.add(className);
+      fallback.addEventListener('animationend',function () { fallback.classList.remove(className); },{once:true});
+    }
     function damageForMove(move, attacker, defender, guard) {
       const rawDamage = Math.max(2, move.power + Math.floor(attackPower(attacker) * .55) + randomInt(-2,2) - Number(defender.stats.defense || 0) - (guard || 0));
       const element = move.element || attacker.element;
@@ -805,6 +828,8 @@
     }
     function finishBattle(won) {
       if (!state.battle || state.battle.ended) return;
+      window.clearTimeout(rivalTurnTimer);
+      rivalTurnTimer = 0;
       state.battle.ended = true;
       combatBusy = false;
       if (won) {
@@ -837,10 +862,13 @@
       render();
     }
     function rivalAttack() {
-      if (state.phase !== 'battle' || !state.battle || !state.monster || !state.rival) { combatBusy = false; return; }
-      const moves = state.rival.moves || [];
-      const move = moves[randomInt(0, moves.length - 1)];
+      if (state.phase !== 'battle' || !state.battle || !state.monster || !state.rival || !state.battle.pendingRival) { combatBusy = false; return; }
+      const moves = (state.rival.moves || []).filter(function (move) { return !move.guard; });
+      const availableMoves = moves.length ? moves : (state.rival.moves || []);
+      const move = availableMoves.length ? availableMoves[randomInt(0, availableMoves.length - 1)] : { name:'Quick Strike', power:6, accuracy:85 };
+      state.battle.pendingRival = false;
       if (window.hatch3dAttack) window.hatch3dAttack('rival');
+      animateFallbackAttack('rival');
       const hitChance = Math.max(55, Math.min(98, move.accuracy + (state.rival.stats.speed - 6) * 3));
       if (randomInt(1,100) > hitChance) {
         addBattleLog(state.rival.name + ' used ' + move.name + ', but ' + state.monster.name + ' dodged it!');
@@ -860,12 +888,33 @@
       saveState();
       render();
     }
+    function scheduleRivalAttack(delay) {
+      window.clearTimeout(rivalTurnTimer);
+      combatBusy = true;
+      rivalTurnTimer = window.setTimeout(function () {
+        rivalTurnTimer = 0;
+        try {
+          rivalAttack();
+        } catch (error) {
+          console.error('Rival turn failed:',error);
+          if (state.battle && !state.battle.ended) {
+            state.battle.pendingRival = false;
+            addBattleLog('The rival turn was reset. Choose your next move.');
+            combatBusy = false;
+            saveState();
+            render();
+          }
+        }
+      },delay);
+    }
     function playerAttack(index) {
       if (state.phase !== 'battle' || !state.battle || state.battle.ended || combatBusy) return;
       const move = (state.monster.moves || [])[index];
       if (!move) return;
       combatBusy = true;
+      state.battle.pendingRival = true;
       if (window.hatch3dAttack) window.hatch3dAttack('player');
+      animateFallbackAttack('player');
       const hitChance = Math.max(55, Math.min(98, move.accuracy + (state.monster.stats.speed - 6) * 3));
       if (randomInt(1,100) > hitChance) {
         addBattleLog(state.monster.name + ' used ' + move.name + ', but ' + state.rival.name + ' dodged it!');
@@ -883,7 +932,7 @@
       if (state.battle.rivalHp <= 0) { saveState(); finishBattle(true); return; }
       saveState();
       render();
-      window.setTimeout(rivalAttack, 480);
+      scheduleRivalAttack(650);
     }
     document.getElementById('hatch-button').addEventListener('click', hatchEgg);
     document.querySelectorAll('.train-button').forEach(function (button) {
@@ -896,6 +945,7 @@
       renderLeaderboard();
     });
     render();
+    if (state.phase === 'battle' && state.battle && state.battle.pendingRival) scheduleRivalAttack(500);
   </script>
   <script src="scripts/hatch-3d.js"></script>
 </body>

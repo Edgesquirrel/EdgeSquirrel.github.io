@@ -1,4 +1,5 @@
 (function () {
+  window.hatch3dReady = false;
   const THREE_URL = './scripts/vendor/three.module.js';
   const GLTF_LOADER_URL = './scripts/vendor/addons/loaders/GLTFLoader.js';
   const DRACO_LOADER_URL = './scripts/vendor/addons/loaders/DRACOLoader.js';
@@ -32,31 +33,37 @@
       pendingAssets.set(archetype,request);
       return request;
     }
-    const preview = makeStage(THREE,document.getElementById('monster-canvas'),false,loadCreature);
-    const battle = makeStage(THREE,document.getElementById('battle-canvas'),true,loadCreature);
+    // One canvas and one WebGL context are shared by the hatch room, gym and arena.
+    // This avoids browsers rejecting the second context and keeps the page lighter.
+    const stage = makeStage(THREE,document.getElementById('shared-3d-canvas'),loadCreature);
+    window.hatch3dReady = true;
 
     window.hatch3dSetState = function (snapshot) {
-      preview.setState(snapshot);
-      battle.setState(snapshot);
+      stage.setState(snapshot);
     };
     window.hatch3dAttack = function (side) {
-      battle.attack(side);
+      stage.attack(side);
       const flash = document.getElementById('effect-flash');
       flash.classList.remove('active');
       void flash.offsetWidth;
       flash.classList.add('active');
     };
     if (window.hatch3dSnapshot) window.hatch3dSetState(window.hatch3dSnapshot);
-  }).catch(function () {
+  }).catch(function (error) {
+    window.hatch3dReady = false;
+    console.error('EdgeSquirrel 3D scene could not start:',error);
     document.getElementById('art-fallback').hidden = false;
     document.getElementById('three-warning').textContent = 'The 3D display could not start in this browser. Your game progress and controls still work.';
+    const snapshot = window.hatch3dSnapshot;
+    const battleFallback = document.getElementById('battle-art-fallback');
+    if (battleFallback) battleFallback.hidden = !(snapshot && (snapshot.phase === 'battleReady' || snapshot.phase === 'battle'));
     document.getElementById('three-warning').hidden = false;
   });
 
-  function makeStage(THREE, canvas, isBattle, loadCreature) {
+  function makeStage(THREE, canvas, loadCreature) {
     if (!canvas) return { setState:function () {}, attack:function () {} };
     const renderer = new THREE.WebGLRenderer({ canvas:canvas, alpha:true, antialias:true, powerPreference:'low-power' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.35));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
@@ -70,10 +77,10 @@
 
     const hemisphere = new THREE.HemisphereLight(0xe7e1ff,0x1b1724,2.0);
     scene.add(hemisphere);
-    const keyLight = new THREE.DirectionalLight(0xfff0dd,3.0);
+    const keyLight = new THREE.DirectionalLight(0xfff0dd,2.7);
     keyLight.position.set(-4,8,5);
     keyLight.castShadow = true;
-    keyLight.shadow.mapSize.set(512,512);
+    keyLight.shadow.mapSize.set(256,256);
     keyLight.shadow.camera.left = -7;
     keyLight.shadow.camera.right = 7;
     keyLight.shadow.camera.top = 7;
@@ -117,7 +124,8 @@
       gym:{ bg:'#171521',floor:'#211d29',rim:'#b69aff',light:'#9274dd' }
     };
     const environmentPalette = { meadow:'moss',volcano:'ember',ice:'moon',forest:'moss',coast:'moon','crystal-arena':'crystal' };
-    const stageSurface = isBattle ? canvas.parentElement : null;
+    let isBattle = false;
+    let stageSurface = canvas.parentElement;
     let currentEnvironment = '';
     function setEnvironment(environmentId) {
       const palette = environmentPalette[environmentId] || environmentId || 'crystal';
@@ -132,7 +140,8 @@
       centerRing.material.color.set(colors.rim);
       centerRing.material.emissive.set(colors.light);
       rimLight.color.set(colors.light);
-      if (stageSurface) stageSurface.style.background = 'radial-gradient(ellipse at 50% 18%,' + colors.bg + ' 0%,transparent 58%),linear-gradient(180deg,#12111c,#0b0b12 88%)';
+      if (stageSurface && isBattle) stageSurface.style.background = 'radial-gradient(ellipse at 50% 18%,' + colors.bg + ' 0%,transparent 58%),linear-gradient(180deg,#12111c,#0b0b12 88%)';
+      else if (stageSurface) stageSurface.style.background = '';
       platform.visible = true;
       outerRing.visible = true;
       centerRing.visible = true;
@@ -179,6 +188,10 @@
       if (creature) next.root.add(next.body);
       scene.add(next.root);
       if (creature) {
+        if (!isBattle) {
+          document.getElementById('art-fallback').hidden = false;
+          document.getElementById('three-warning').hidden = true;
+        }
         const assetKey = creature.archetype === 'squirrel' && creature.rare ? 'squirrel-rare' : creature.archetype;
         loadCreature(assetKey).then(function (asset) {
           if (models[key] !== next) return;
@@ -232,6 +245,14 @@
       snapshot = nextSnapshot || null;
       if (!snapshot) return;
       const fighting = snapshot.phase === 'battleReady' || snapshot.phase === 'battle';
+      const nextSurface = fighting ? document.querySelector('.stage-scene') : document.getElementById('monster-art');
+      if (nextSurface && canvas.parentElement !== nextSurface) {
+        nextSurface.insertBefore(canvas,nextSurface.firstChild);
+        stageSurface = nextSurface;
+        lastWidth = 0;
+        lastHeight = 0;
+      }
+      isBattle = fighting;
       const stageEnvironment = isBattle ? (fighting ? (snapshot.arena === 'crystal' ? 'crystal-arena' : snapshot.arena) : snapshot.room) : (snapshot.phase === 'training' ? 'gym' : snapshot.room);
       setEnvironment(stageEnvironment);
       if (isBattle && fighting) {
@@ -240,6 +261,10 @@
         if (models.single) { clearModel(models.single); models.single = null; }
       } else if (!isBattle && !fighting) {
         setModel('single',snapshot.monster,1);
+        if (!snapshot.monster) {
+          document.getElementById('art-fallback').hidden = true;
+          document.getElementById('three-warning').hidden = true;
+        }
         if (models.player) { clearModel(models.player); models.player = null; }
         if (models.rival) { clearModel(models.rival); models.rival = null; }
       } else {
