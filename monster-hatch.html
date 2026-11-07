@@ -22,7 +22,7 @@
       --pink: #ff83ad;
       --green: #74e2b4;
       --radius: 22px;
-      --max: 1160px;
+      --max: 1440px;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -71,10 +71,17 @@
     .start-egg-art svg,.start-egg-art img { width:100%; height:100%; object-fit:contain; overflow:visible; filter:drop-shadow(0 14px 22px rgba(0,0,0,.4)); animation:eggFloat 3.5s ease-in-out infinite; }
     .egg-caption { margin:4px 0 0; color:#c7c2d8; font-size:11px; text-align:center; }
     @keyframes eggFloat { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-8px) rotate(1deg)} }
-    .game-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, .72fr); gap: 18px; align-items: start; padding-bottom: 64px; }
+    .game-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(290px, .72fr); gap: 22px; align-items: start; padding-bottom: 64px; }
     .card { border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(155deg, rgba(255,255,255,.045), rgba(255,255,255,.012)); box-shadow: 0 22px 65px rgba(0,0,0,.18); }
     .arena { overflow: hidden; }
     .arena-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 19px 22px; border-bottom: 1px solid var(--line); }
+    .arena-tools { display:flex; align-items:center; gap:9px; }
+    .fullscreen-button { min-height:34px; padding:0 11px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.035); color:#ddd6ed; cursor:pointer; font-size:10px; font-weight:750; }
+    .fullscreen-button:hover { border-color:rgba(168,139,255,.45); background:rgba(168,139,255,.09); }
+    #game-main:fullscreen { width:100%; max-width:none; min-height:100vh; overflow:auto; padding:24px clamp(22px,4vw,72px); background:var(--bg); }
+    #game-main:fullscreen .game-layout { grid-template-columns:minmax(0,1.75fr) minmax(300px,.72fr); gap:24px; }
+    #game-main:fullscreen .stage-scene { min-height: min(58vh, 620px); }
+    #game-main:fullscreen .stage-scene canvas { height:min(58vh, 620px); }
     .level-block { display: flex; align-items: baseline; gap: 10px; }
     .level-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
     .level-number { color: var(--gold); font-size: 21px; font-weight: 800; }
@@ -171,7 +178,7 @@
     @keyframes spriteHover { 0%,100%{transform:translateY(0) rotate(-.3deg)} 50%{transform:translateY(-4px) rotate(.3deg)} }
     .monster-stage.battle-active { display:block; min-height:0; padding:12px; }
     .stage-battle { display:block; width:100%; margin:0; padding:0; border:0; background:transparent; }
-    .stage-scene { position:relative; min-height:350px; overflow:hidden; isolation:isolate; border:1px solid rgba(168,139,255,.26); border-radius:16px; background:#101827 url('/assets/arenas/meadow.svg') center / cover no-repeat; box-shadow:inset 0 0 50px rgba(6,8,17,.36); }
+    .stage-scene { position:relative; min-height:410px; overflow:hidden; isolation:isolate; border:1px solid rgba(168,139,255,.26); border-radius:16px; background:#101827 url('/assets/arenas/meadow.svg') center / cover no-repeat; box-shadow:inset 0 0 50px rgba(6,8,17,.36); }
     .stage-scene[data-arena="meadow"] { background-image:linear-gradient(180deg,rgba(10,16,27,.1),rgba(9,13,20,.2)),url('/assets/arenas/meadow.svg'); }
     .stage-scene[data-arena="volcano"] { background-image:linear-gradient(180deg,rgba(28,11,15,.08),rgba(15,9,14,.22)),url('/assets/arenas/volcano.svg'); }
     .stage-scene[data-arena="ice"] { background-image:linear-gradient(180deg,rgba(11,26,43,.06),rgba(9,19,30,.18)),url('/assets/arenas/ice.svg'); }
@@ -186,22 +193,26 @@
     .loading-title { margin:0; color:#fff; font-size:13px; font-weight:800; }
     .loading-copy { margin:0; color:#c6bfd6; font-size:10px; line-height:1.6; }
     @keyframes loadingSpin { to{transform:rotate(360deg)} }
-    .stage-scene canvas { display:block; width:100%; height:330px; }
+    .stage-scene canvas { display:block; width:100%; height:410px; }
     .battle-model-fallback { position:absolute; z-index:1; inset:0; display:block; pointer-events:none; }
     .battle-model-fallback[hidden] { display:none; }
-    .battle-fighter-spot { position:absolute; top:78px; bottom:24px; display:grid; width:46%; place-items:end center; }
+    .battle-fighter-spot { position:absolute; top:82px; bottom:30px; display:grid; width:46%; place-items:end center; }
     .battle-fighter-spot.player-spot { left:1%; }
     .battle-fighter-spot.rival-spot { right:1%; }
-    .battle-fighter-spot img { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 16px 13px rgba(0,0,0,.48)); transform:scale(var(--sprite-scale,.8)); transform-origin:center bottom; transition:filter .18s ease; }
-    .battle-fighter-spot.rival-spot img { transform:scaleX(-1) scale(var(--sprite-scale,.8)); }
+    .battle-fighter-spot img { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 16px 13px rgba(0,0,0,.48)); transform:translateY(calc(var(--sprite-floor-shift, 0%) + var(--sprite-position-y,0px))) scale(var(--sprite-scale,.8)); transform-origin:center bottom; transition:filter .18s ease; }
+    .battle-fighter-spot.rival-spot img { transform:translateY(calc(var(--sprite-floor-shift, 0%) + var(--sprite-position-y,0px))) scaleX(-1) scale(var(--sprite-scale,.8)); }
     .battle-fighter-spot img.attacking-player { animation:fallbackPlayerLunge .9s cubic-bezier(.2,.8,.2,1); }
     .battle-fighter-spot img.attacking-rival { animation:fallbackRivalLunge .9s cubic-bezier(.2,.8,.2,1); }
     .battle-fighter-spot img.taking-hit-player { animation:fallbackPlayerHit .34s ease-out; }
     .battle-fighter-spot img.taking-hit-rival { animation:fallbackRivalHit .34s ease-out; }
-    @keyframes fallbackPlayerLunge { 0%,100%{transform:scale(var(--sprite-scale,.8))} 23%{transform:translateX(5px) scale(var(--sprite-scale,.8))} 47%{transform:translateX(27px) scale(var(--sprite-scale,.8))} 59%{transform:translateX(20px) scale(var(--sprite-scale,.8))} 78%{transform:translateX(3px) scale(var(--sprite-scale,.8))} }
-    @keyframes fallbackRivalLunge { 0%,100%{transform:scaleX(-1) scale(var(--sprite-scale,.8))} 23%{transform:translateX(-5px) scaleX(-1) scale(var(--sprite-scale,.8))} 47%{transform:translateX(-27px) scaleX(-1) scale(var(--sprite-scale,.8))} 59%{transform:translateX(-20px) scaleX(-1) scale(var(--sprite-scale,.8))} 78%{transform:translateX(-3px) scaleX(-1) scale(var(--sprite-scale,.8))} }
-    @keyframes fallbackPlayerHit { 25%{transform:translateX(-7px) scale(var(--sprite-scale,.8));filter:brightness(1.8)} 60%{transform:translateX(4px) scale(var(--sprite-scale,.8))} }
-    @keyframes fallbackRivalHit { 25%{transform:translateX(7px) scaleX(-1) scale(var(--sprite-scale,.8));filter:brightness(1.8)} 60%{transform:translateX(-4px) scaleX(-1) scale(var(--sprite-scale,.8))} }
+    @keyframes fallbackPlayerLunge { 0%,100%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) scale(var(--sprite-scale,.8))} 23%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(5px) scale(var(--sprite-scale,.8))} 47%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(27px) scale(var(--sprite-scale,.8))} 59%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(20px) scale(var(--sprite-scale,.8))} 78%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(3px) scale(var(--sprite-scale,.8))} }
+    @keyframes fallbackRivalLunge { 0%,100%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) scaleX(-1) scale(var(--sprite-scale,.8))} 23%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(-5px) scaleX(-1) scale(var(--sprite-scale,.8))} 47%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(-27px) scaleX(-1) scale(var(--sprite-scale,.8))} 59%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(-20px) scaleX(-1) scale(var(--sprite-scale,.8))} 78%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(-3px) scaleX(-1) scale(var(--sprite-scale,.8))} }
+    @keyframes fallbackPlayerHit { 25%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(-7px) scale(var(--sprite-scale,.8));filter:brightness(1.8)} 60%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(4px) scale(var(--sprite-scale,.8))} }
+    @keyframes fallbackRivalHit { 25%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(7px) scaleX(-1) scale(var(--sprite-scale,.8));filter:brightness(1.8)} 60%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateX(-4px) scaleX(-1) scale(var(--sprite-scale,.8))} }
+    .battle-fighter-spot.downed img { animation:fallDown .52s ease-out forwards; filter:grayscale(.48) brightness(.64) drop-shadow(0 12px 12px rgba(0,0,0,.44)); }
+    .battle-fighter-spot.rival-spot.downed img { animation-name:fallDownRival; }
+    @keyframes fallDown { 0%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) scale(var(--sprite-scale,.8))} 55%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateY(9px) rotate(6deg) scale(var(--sprite-scale,.8))} 100%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateY(13px) rotate(8deg) scale(var(--sprite-scale,.8));opacity:.74} }
+    @keyframes fallDownRival { 0%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) scaleX(-1) scale(var(--sprite-scale,.8))} 55%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateY(9px) rotate(-6deg) scaleX(-1) scale(var(--sprite-scale,.8))} 100%{transform:translateY(calc(var(--sprite-floor-shift,0%) + var(--sprite-position-y,0px))) translateY(13px) rotate(-8deg) scaleX(-1) scale(var(--sprite-scale,.8));opacity:.74} }
     .stage-hud { position:absolute; z-index:3; inset:12px 12px auto; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:9px; pointer-events:none; }
     .stage-fighter { min-width:0; padding:9px 11px; border:1px solid rgba(255,255,255,.15); border-radius:12px; background:rgba(8,8,14,.82); backdrop-filter:blur(9px); }
     .stage-fighter.enemy { justify-self:end; width:min(100%,250px); }
@@ -212,6 +223,20 @@
     .stage-hud .hp-track { height:6px; margin-top:4px; }
     .effect-flash { position:absolute; z-index:2; inset:0; pointer-events:none; opacity:0; background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.7),transparent 30%); }
     .effect-flash.active { animation: impactFlash .36s ease-out; }
+    .impact-burst { position:absolute; z-index:2; width:66px; height:66px; border:2px solid currentColor; border-radius:50%; background:radial-gradient(circle,currentColor 0,transparent 70%); box-shadow:0 0 24px currentColor; transform:translate(-50%,-50%) scale(.25); animation:impactBurst .46s ease-out forwards; pointer-events:none; }
+    .projectile-trail { position:absolute; z-index:2; width:74px; height:11px; border-radius:99px; background:linear-gradient(90deg,transparent 0%,var(--projectile-color,#fff) 70%,#fff 100%); filter:drop-shadow(0 0 7px var(--projectile-color,#fff)); transform-origin:center center; animation:projectileFly .5s cubic-bezier(.22,.72,.27,1) forwards; pointer-events:none; }
+    .projectile-trail::after { position:absolute; top:50%; right:-5px; width:17px; height:17px; border-radius:50%; background:var(--projectile-color,#fff); box-shadow:0 0 15px 5px var(--projectile-color,#fff); transform:translateY(-50%); content:""; }
+    @keyframes impactBurst { 30%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)} }
+    @keyframes projectileFly { 0%{opacity:0;transform:translate(0,0) rotate(var(--projectile-angle,0deg)) scale(.55)} 12%{opacity:1} 100%{opacity:0;transform:translate(var(--projectile-dx,0px),var(--projectile-dy,0px)) rotate(var(--projectile-angle,0deg)) scale(.75)} }
+    .battle-result-overlay { position:absolute; z-index:4; inset:0; display:grid; place-items:center; padding:18px; background:rgba(8,8,14,.26); pointer-events:none; }
+    .battle-result-overlay[hidden] { display:none; }
+    .battle-result-card { max-width:min(88%,420px); padding:17px 23px; border:1px solid rgba(255,255,255,.2); border-radius:16px; background:rgba(13,12,21,.94); box-shadow:0 18px 50px rgba(0,0,0,.5); text-align:center; animation:resultPop .35s cubic-bezier(.2,.8,.2,1) both; }
+    .battle-result-card.won { border-color:rgba(116,226,180,.52); }
+    .battle-result-card.lost { border-color:rgba(255,131,173,.52); }
+    .battle-result-title { margin:0; color:var(--green); font-size:clamp(22px,4vw,38px); font-weight:900; letter-spacing:-.05em; text-shadow:0 0 22px rgba(116,226,180,.24); }
+    .battle-result-card.lost .battle-result-title { color:var(--pink); text-shadow:0 0 22px rgba(255,131,173,.24); }
+    .battle-result-copy { margin:6px 0 0; color:#e5deef; font-size:11px; line-height:1.55; }
+    @keyframes resultPop { from{opacity:0;transform:translateY(8px) scale(.94)} to{opacity:1;transform:translateY(0) scale(1)} }
     .three-warning { position:absolute; z-index:4; inset:auto 12px 12px; padding:9px 12px; border:1px solid rgba(255,255,255,.13); border-radius:10px; background:rgba(8,8,14,.86); color:#d8d2e5; font-size:9px; text-align:center; }
     @keyframes impactFlash { 10%{opacity:.75} 100%{opacity:0} }
     .scene-caption { position:absolute; z-index:3; bottom:10px; left:50%; transform:translateX(-50%); max-width:90%; padding:7px 12px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background:rgba(8,8,14,.75); color:#ddd5f2; font-size:9px; white-space:nowrap; }
@@ -315,6 +340,7 @@
       .element-row { grid-template-columns:65px 1fr; }
       .side-stack { grid-template-columns: 1fr; }
       .game-footer { align-items: flex-start; flex-direction: column; }
+      .fullscreen-button { display:none; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
@@ -335,12 +361,12 @@
     </div>
   </header>
 
-  <main class="shell">
+  <main class="shell" id="game-main">
     <section class="game-hero">
       <div>
         <p class="eyebrow">A little monster-training game</p>
         <h1>Hatch. Train.<br><span>Battle.</span></h1>
-        <p class="hero-copy">Hatch an animated elemental monster, train any stat your way, then guide it through a turn-based arena battle. Keep winning to climb levels and set your best run.</p>
+        <p class="hero-copy">Hatch an animated elemental monster, train any stat your way, then guide it through a turn-based arena battle. Rivals scale harder beyond Level 20, so every win stays earned.</p>
       </div>
       <div class="hero-note"><strong>One run = four in-game weeks.</strong><br>No real-world waiting. Choose any stat each of the first three weeks, then command your attacks in Week 4.</div>
     </section>
@@ -365,7 +391,7 @@
       <section class="card arena" aria-label="Monster game">
         <div class="arena-head">
           <div class="level-block"><span class="level-label">Your level</span><strong class="level-number" id="current-level">0</strong></div>
-          <span class="week-pill" id="week-label">EGG READY</span>
+          <div class="arena-tools"><button class="fullscreen-button" id="fullscreen-button" type="button" aria-label="View the whole game fullscreen">⛶ Fullscreen</button><span class="week-pill" id="week-label">EGG READY</span></div>
         </div>
         <div class="week-roadmap" id="week-roadmap" aria-label="Training and battle weeks">
           <div class="week-step" data-week="1"><span class="week-step-num">1</span><span>Train</span></div>
@@ -388,9 +414,10 @@
           </div>
           <section class="battle-screen stage-battle" id="battle-screen" aria-label="Battle arena" hidden>
             <div class="stage-scene">
-              <div class="battle-model-fallback" id="battle-art-fallback" hidden aria-hidden="true"><div class="battle-fighter-spot player-spot"><img id="player-model-fallback" alt=""></div><div class="battle-fighter-spot rival-spot"><img id="rival-model-fallback" alt=""></div></div>
+              <div class="battle-model-fallback" id="battle-art-fallback" hidden aria-hidden="true"><div class="battle-fighter-spot player-spot" id="player-fighter-spot"><img id="player-model-fallback" alt=""></div><div class="battle-fighter-spot rival-spot" id="rival-fighter-spot"><img id="rival-model-fallback" alt=""></div></div>
               <div class="battle-loading" id="battle-loading" role="status" aria-live="polite" hidden><div class="battle-loading-card"><span class="loading-spinner" aria-hidden="true"></span><p class="loading-title" id="battle-loading-title">Preparing the arena</p><p class="loading-copy" id="battle-loading-copy">Loading both monsters and their animation frames. Battle controls will unlock when they are ready.</p><button class="button button-secondary" id="retry-battle-assets" type="button" hidden>Retry loading</button></div></div>
               <div class="effect-flash" id="effect-flash"></div>
+              <div class="battle-result-overlay" id="battle-result-overlay" hidden aria-live="assertive"><div class="battle-result-card" id="battle-result-card"><p class="battle-result-title" id="battle-result-title">Victory!</p><p class="battle-result-copy" id="battle-result-copy">The battle is over.</p></div></div>
               <div class="stage-hud">
                 <div class="stage-fighter player"><div class="fighter-heading"><span id="player-combat-name">Your monster</span><span>YOU</span></div><div class="fighter-type" id="player-element-name">Element</div><div class="fighter-hp-text"><span>Health</span><strong id="player-hp-label">0 / 0</strong></div><div class="hp-track"><div class="hp-fill" id="player-hp-fill"></div></div></div>
                 <div class="stage-fighter enemy"><div class="fighter-heading"><span id="enemy-combat-name">Rival</span><span>RIVAL</span></div><div class="fighter-type" id="enemy-element-name">Element</div><div class="fighter-hp-text"><span>Health</span><strong id="enemy-hp-label">0 / 0</strong></div><div class="hp-track"><div class="hp-fill" id="enemy-hp-fill"></div></div></div>
@@ -451,7 +478,7 @@
           <ol class="rules-list">
             <li><span class="rule-number">1</span><span>Hatch an egg to meet an animated elemental monster with its own look and starting stats.</span></li>
             <li><span class="rule-number">2</span><span>In Weeks 1–3, choose any stat each time, including the same stat repeatedly. Strength adds attack and health, Defense reduces damage, and Speed improves accuracy.</span></li>
-            <li><span class="rule-number">3</span><span>In Week 4, choose attacks during a turn-based fight. Element matchups can make a move stronger or weaker.</span></li>
+            <li><span class="rule-number">3</span><span>In Week 4, choose attacks during a turn-based fight. Element matchups can make a move stronger or weaker. Rivals grow tougher after Level 20.</span></li>
             <li><span class="rule-number">4</span><span>A win adds a level and starts another three-week training cycle. A loss brings a new Level 0 egg.</span></li>
           </ol>
         </section>
@@ -472,20 +499,20 @@
       { key: 'speed', label: 'Speed', mark: '➤' }
     ];
     const MONSTERS = [
-      { id:'ember-drake', name:'Ember Drake', kind:'Fire reptile', element:'Fire', archetype:'dragon', color:'#e7734e', light:'#ffd07b', stats:{strength:7,defense:5,speed:4}, description:'A fierce ember-scaled drake with flame-bright feathers and a molten core.', moves:[{name:'Cinder Claw',power:7,accuracy:94},{name:'Tail Scorch',power:10,accuracy:78},{name:'Flame Guard',power:5,accuracy:100,guard:3}] },
+      { id:'ember-drake', name:'Ember Drake', kind:'Fire reptile', element:'Fire', archetype:'dragon', color:'#e7734e', light:'#ffd07b', stats:{strength:7,defense:5,speed:4}, description:'A fierce ember-scaled drake with flame-bright feathers and a molten core.', moves:[{name:'Cinder Claw',power:7,accuracy:94},{name:'Tail Scorch',power:10,accuracy:78,ranged:true},{name:'Flame Guard',power:5,accuracy:100,guard:3}] },
       { id:'reef-strider', name:'Reef Strider', kind:'Water speedster', element:'Water', archetype:'raptor', color:'#39a7a5', light:'#a7fff0', stats:{strength:5,defense:4,speed:9}, description:'A small, quick reef-runner with webbed feet and a ridged coral mantle.', moves:[{name:'Riptide Pounce',power:7,accuracy:96},{name:'Reef Shear',power:10,accuracy:82},{name:'Current Guard',power:4,accuracy:100,guard:3}] },
       { id:'briar-raptor', name:'Briar Raptor', kind:'Grass forest-runner', element:'Grass', archetype:'raptor', color:'#65a85a', light:'#d5f58b', stats:{strength:6,defense:5,speed:7}, description:'A nimble forest creature with leaf-blades, bark plates, and seed pods.', moves:[{name:'Vine Lunge',power:8,accuracy:90},{name:'Briar Slash',power:10,accuracy:82},{name:'Seed Guard',power:4,accuracy:100,guard:4}] },
       { id:'rock-golem', name:'Rock Golem', kind:'Earth defender', element:'Earth', archetype:'golem', color:'#8a735d', light:'#e0bd83', stats:{strength:7,defense:9,speed:3}, description:'A sturdy two-legged guardian with natural stone plates and a glowing geode.', moves:[{name:'Boulder Fist',power:9,accuracy:88},{name:'Quake Stomp',power:12,accuracy:70},{name:'Stone Wall',power:3,accuracy:100,guard:5}] },
-      { id:'dawncrest', name:'Dawncrest', kind:'Light avian guardian', element:'Light', archetype:'bird', color:'#e8b75a', light:'#fff4ad', stats:{strength:6,defense:6,speed:6}, description:'A radiant long-legged guardian with a sunburst crest and glowing feather tips.', moves:[{name:'Sunburst Wing',power:8,accuracy:91},{name:'Dawn Strike',power:10,accuracy:84},{name:'Radiant Guard',power:4,accuracy:100,guard:4}] },
-      { id:'shadow-spider', name:'Shadow Spider', kind:'Dark web-stalker', element:'Dark', archetype:'spider', color:'#4f426d', light:'#d5a4ff', stats:{strength:7,defense:5,speed:7}, description:'An eight-legged midnight hunter with violet eyes and a trailing shadow veil.', moves:[{name:'Night Pounce',power:8,accuracy:92},{name:'Umbral Thread',power:10,accuracy:82},{name:'Shadow Screen',power:4,accuracy:100,guard:4}] },
+      { id:'dawncrest', name:'Dawncrest', kind:'Light avian guardian', element:'Light', archetype:'bird', color:'#e8b75a', light:'#fff4ad', stats:{strength:6,defense:6,speed:6}, description:'A radiant long-legged guardian with a sunburst crest and glowing feather tips.', moves:[{name:'Sunburst Wing',power:8,accuracy:91,ranged:true},{name:'Dawn Strike',power:10,accuracy:84},{name:'Radiant Guard',power:4,accuracy:100,guard:4}] },
+      { id:'shadow-spider', name:'Shadow Spider', kind:'Dark web-stalker', element:'Dark', archetype:'spider', color:'#4f426d', light:'#d5a4ff', stats:{strength:7,defense:5,speed:7}, description:'An eight-legged midnight hunter with violet eyes and a trailing shadow veil.', moves:[{name:'Night Pounce',power:8,accuracy:92},{name:'Umbral Thread',power:10,accuracy:82,ranged:true},{name:'Shadow Screen',power:4,accuracy:100,guard:4}] },
       { id:'frost-wolf', name:'Frost Wolf', kind:'Ice wolf', element:'Ice', archetype:'wolf', color:'#a9bad3', light:'#c9f5ff', stats:{strength:7,defense:6,speed:7}, description:'A silver-white wolf with blue ice plates and a piercing glacial gaze.', moves:[{name:'Frost Bite',power:8,accuracy:90},{name:'Glacier Rush',power:11,accuracy:78},{name:'Ice Shell',power:4,accuracy:100,guard:4}] },
       { id:'volt-lynx', name:'Volt Lynx', kind:'Electric sprinter', element:'Electric', archetype:'wolf', color:'#3d7fb3', light:'#b8f1ff', stats:{strength:6,defense:4,speed:9}, description:'A sleek lynx whose crystal plates crackle with branching electric arcs.', moves:[{name:'Spark Claw',power:7,accuracy:96},{name:'Thunder Dash',power:10,accuracy:85},{name:'Static Veil',power:4,accuracy:100,guard:3}] },
-      { id:'crystal-squirrel', name:'Crystal Squirrel', kind:'Rare · Psychic crystal-tail beast', element:'Psychic', archetype:'squirrel', color:'#9b4dff', light:'#f5d2ff', rare:true, stats:{strength:6,defense:6,speed:7}, description:'A fierce purple squirrel with a huge crystal-spiked tail. Rare hatch: about 5%.', moves:[{name:'Crystal Claw',power:8,accuracy:94},{name:'Prism Tail',power:11,accuracy:82},{name:'Shard Guard',power:4,accuracy:100,guard:4}] },
+      { id:'crystal-squirrel', name:'Crystal Squirrel', kind:'Rare · Psychic crystal-tail beast', element:'Psychic', archetype:'squirrel', color:'#9b4dff', light:'#f5d2ff', rare:true, stats:{strength:6,defense:6,speed:7}, description:'A fierce purple squirrel with a huge crystal-spiked tail. Rare hatch: about 5%.', moves:[{name:'Crystal Claw',power:8,accuracy:94},{name:'Prism Tail',power:11,accuracy:82,ranged:true},{name:'Shard Guard',power:4,accuracy:100,guard:4}] },
       { id:'hooded-ghoul', name:'Hooded Ghoul', kind:'Ghost shroud-walker', element:'Ghost', archetype:'ghost', color:'#6676a5', light:'#c2e8ff', stats:{strength:5,defense:5,speed:8}, description:'A pale, cracked face peers from a ragged cloak of spectral vapor.', moves:[{name:'Phantom Claw',power:8,accuracy:92},{name:'Haunt Dash',power:10,accuracy:86},{name:'Wraith Veil',power:4,accuracy:100,guard:4}] },
-      { id:'mire-toad', name:'Mire Toad', kind:'Poison rainforest sprinter', element:'Poison', archetype:'toad', color:'#42925b', light:'#c8ff67', stats:{strength:5,defense:4,speed:10}, description:'A small, skinny rainforest toad with springing legs and glowing venom glands.', moves:[{name:'Toxic Tongue',power:7,accuracy:95},{name:'Bog Leap',power:10,accuracy:83},{name:'Spore Screen',power:4,accuracy:100,guard:4}] },
+      { id:'mire-toad', name:'Mire Toad', kind:'Poison rainforest sprinter', element:'Poison', archetype:'toad', color:'#42925b', light:'#c8ff67', stats:{strength:5,defense:4,speed:10}, description:'A small, skinny rainforest toad with springing legs and glowing venom glands.', moves:[{name:'Toxic Tongue',power:7,accuracy:95,ranged:true},{name:'Bog Leap',power:10,accuracy:83},{name:'Spore Screen',power:4,accuracy:100,guard:4}] },
       { id:'gale-kite', name:'Gale Kite', kind:'Air glider', element:'Air', archetype:'bird', color:'#a9c8e0', light:'#bdf8ff', stats:{strength:5,defense:4,speed:10}, description:'A swift kite-winged glider with a split ribbon tail that rides the wind.', moves:[{name:'Gale Beak',power:7,accuracy:96},{name:'Sky Dive',power:10,accuracy:84},{name:'Updraft Guard',power:4,accuracy:100,guard:3}] },
       { id:'metal-serpent', name:'Metal Serpent', kind:'Metal jaw-breaker', element:'Metal', archetype:'serpent', color:'#89949c', light:'#ffd188', stats:{strength:8,defense:8,speed:4}, description:'A powerful steel-scaled serpent with a reinforced jaw built to crush ore-bearing stone.', moves:[{name:'Crushing Bite',power:10,accuracy:86},{name:'Iron Coil',power:11,accuracy:78},{name:'Steel Guard',power:3,accuracy:100,guard:5}] },
-      { id:'poison-moth', name:'Poison Moth', kind:'Toxic wing-beast', element:'Poison', archetype:'moth', color:'#418d68', light:'#c6ff69', stats:{strength:6,defense:4,speed:8}, description:'An emerald-and-violet moth with toxic eye-spots and bright venom sacs.', moves:[{name:'Venom Dust',power:8,accuracy:92},{name:'Wing Slice',power:10,accuracy:82},{name:'Toxic Veil',power:4,accuracy:100,guard:4}] }
+      { id:'poison-moth', name:'Poison Moth', kind:'Toxic wing-beast', element:'Poison', archetype:'moth', color:'#418d68', light:'#c6ff69', stats:{strength:6,defense:4,speed:8}, description:'An emerald-and-violet moth with toxic eye-spots and bright venom sacs.', moves:[{name:'Venom Dust',power:8,accuracy:92,ranged:true},{name:'Wing Slice',power:10,accuracy:82},{name:'Toxic Veil',power:4,accuracy:100,guard:4}] }
     ];
     const LEGACY_MONSTER_IDS = { emberdrake:'ember-drake', frostdrake:'frost-wolf', duskfang:'shadow-spider', stormwolf:'volt-lynx', mossgolem:'rock-golem', obsidiangolem:'metal-serpent', reefraptor:'reef-strider', crystalsquirrel:'crystal-squirrel', thornback:'briar-raptor', sunmane:'dawncrest', wispound:'hooded-ghoul', venomcoil:'mire-toad', skydactyl:'gale-kite' };
     const ROOMS = [
@@ -498,11 +525,12 @@
       { id:'coast', name:'Coastal Cliffs' }, { id:'crystal', name:'Crystal Cavern' }
     ];
     const BATTLE_SPRITE_SCALE = {
-      'ember-drake':0.82, 'reef-strider':0.70, 'briar-raptor':0.76, 'rock-golem':0.82,
-      'dawncrest':0.78, 'shadow-spider':0.68, 'frost-wolf':0.88, 'volt-lynx':0.76,
-      'crystal-squirrel':0.62, 'hooded-ghoul':0.66, 'mire-toad':0.58, 'gale-kite':0.72,
+      'ember-drake':0.78, 'reef-strider':0.70, 'briar-raptor':0.76, 'rock-golem':0.64,
+      'dawncrest':0.78, 'shadow-spider':0.68, 'frost-wolf':0.76, 'volt-lynx':0.72,
+      'crystal-squirrel':0.62, 'hooded-ghoul':0.61, 'mire-toad':0.58, 'gale-kite':0.72,
       'metal-serpent':0.78, 'poison-moth':0.64
     };
+    const BATTLE_SPRITE_Y = { 'rock-golem':'-5px', 'hooded-ghoul':'-22px' };
     const ELEMENT_ADVANTAGES = {
       Fire:['Grass','Ice','Metal'], Water:['Fire','Earth'], Grass:['Water','Earth'],
       Earth:['Electric','Fire','Poison'], Light:['Dark','Ghost'], Dark:['Psychic'],
@@ -533,8 +561,10 @@
     }
     let combatBusy = !!(state.phase === 'battle' && state.battle && state.battle.pendingRival);
     let rivalTurnTimer = 0;
+    let battleResultTimer = 0;
     const battleAssetsReady = new Set();
     let activeBattleAssetKey = '';
+    let activeDisplayBattleId = '';
 
     function loadState() {
       try {
@@ -550,6 +580,21 @@
         restored.previousMonsterId = LEGACY_MONSTER_IDS[restored.previousMonsterId] || restored.previousMonsterId;
         if (restored.monster) restored.monster = restoreMonster(restored.monster);
         if (restored.rival) restored.rival = restoreMonster(restored.rival);
+        if (restored.battle && !restored.battle.assetId) restored.battle.assetId = 'saved-' + Date.now().toString(36) + '-' + randomInt(1000,9999);
+        if (restored.rival && Number(restored.rival.scalingVersion || 0) < 2) {
+          const baseRival = MONSTERS.find(function (monster) { return monster.id === restored.rival.id; });
+          if (baseRival && !(restored.battle && restored.battle.ended)) {
+            const previousMax = Number(restored.battle && restored.battle.rivalMax) || maximumHealth(restored.rival,restored.level);
+            const previousHp = Number(restored.battle && restored.battle.rivalHp);
+            const remainingRatio = previousMax > 0 && Number.isFinite(previousHp) ? Math.max(0,Math.min(1,previousHp / previousMax)) : 1;
+            restored.rival = createScaledRival(baseRival,restored.level);
+            if (restored.battle) {
+              restored.battle.rivalMax = maximumHealth(restored.rival,restored.level);
+              restored.battle.rivalHp = Math.max(1,Math.round(restored.battle.rivalMax * remainingRatio));
+            }
+            localStorage.setItem(STORAGE_KEY,JSON.stringify(restored));
+          }
+        }
         if (!ROOMS.some(function (room) { return room.id === restored.room; })) restored.room = 'crystal';
         if (!BATTLE_ARENAS.some(function (arena) { return arena.id === restored.arena; })) {
           restored.arena = restored.phase === 'battleReady' || restored.phase === 'battle' ? BATTLE_ARENAS[randomInt(0,BATTLE_ARENAS.length - 1)].id : '';
@@ -630,10 +675,47 @@
       const id = known ? monster.id : 'ember-drake';
       const kind = action === 'attack' ? 'attack' : 'idle';
       const number = Math.max(1, Number(frame) || 1);
-      return '/' + id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png?v=20261107-3';
+      return '/' + id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png?v=20261107-7';
     }
-    function battleAssetKeyFor(player, rival) {
-      return player && rival ? player.id + '|' + rival.id : '';
+    function battleAssetKeyFor(player, rival, battle) {
+      const session = battle && battle.assetId ? battle.assetId : (state.battle && state.battle.assetId) || 'unassigned';
+      return player && rival ? player.id + '|' + rival.id + '|' + session : '';
+    }
+    function setBattleImage(image, monster) {
+      if (!image || !monster) return;
+      const expected = monsterPreviewPath(monster);
+      const current = image.getAttribute('src') || '';
+      const correctIdentity = image.dataset.monsterId === monster.id && current.indexOf('/' + monster.id + '/') >= 0;
+      if (!correctIdentity) {
+        image.removeAttribute('src');
+        image.dataset.monsterId = monster.id;
+        image.dataset.spriteFrame = '';
+        image.dataset.spritePending = '';
+        image.style.setProperty('--sprite-floor-shift','0%');
+        image.src = expected;
+      }
+      image.alt = monster.name;
+    }
+    function waitForVisibleImage(image) {
+      if (image && image.complete && image.naturalWidth > 0) return Promise.resolve(true);
+      if (!image) return Promise.resolve(false);
+      return new Promise(function (resolve) {
+        let settled = false;
+        const timer = window.setTimeout(function () { finish(false); },6000);
+        function finish(loaded) {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timer);
+          image.removeEventListener('load',onLoad);
+          image.removeEventListener('error',onError);
+          resolve(loaded);
+        }
+        function onLoad() { finish(image.naturalWidth > 0); }
+        function onError() { finish(false); }
+        image.addEventListener('load',onLoad,{once:true});
+        image.addEventListener('error',onError,{once:true});
+        if (image.complete) finish(image.naturalWidth > 0);
+      });
     }
     function preloadBattleAssets(player, rival, retry) {
       if (window.monsterSpritesWarmBattle) return window.monsterSpritesWarmBattle(player, rival, !!retry);
@@ -653,38 +735,67 @@
       return Promise.all(requests).then(function (results) { return results.every(Boolean); });
     }
     function prepareBattleAssets(player, rival, retry) {
-      const key = battleAssetKeyFor(player,rival);
+      const battle = state.battle;
+      const key = battleAssetKeyFor(player,rival,battle);
       const loading = document.getElementById('battle-loading');
       const retryButton = document.getElementById('retry-battle-assets');
       const battleButton = document.getElementById('battle-button');
-      if (battleAssetsReady.has(key) && !retry) {
+      const playerImage = document.getElementById('player-model-fallback');
+      const rivalImage = document.getElementById('rival-model-fallback');
+      const displayedImagesMatch = playerImage.dataset.monsterId === player.id && rivalImage.dataset.monsterId === rival.id && (playerImage.getAttribute('src') || '').indexOf('/' + player.id + '/') >= 0 && (rivalImage.getAttribute('src') || '').indexOf('/' + rival.id + '/') >= 0;
+      if (battleAssetsReady.has(key) && !retry && displayedImagesMatch && playerImage.complete && playerImage.naturalWidth && rivalImage.complete && rivalImage.naturalWidth) {
         loading.hidden = true;
         battleButton.disabled = false;
         return;
       }
-      if (activeBattleAssetKey === key && !retry) {
+      if (activeBattleAssetKey === key && !retry && !loading.hidden) {
         loading.hidden = false;
         battleButton.disabled = true;
         return;
       }
-      activeBattleAssetKey = key;
+      const newDisplay = activeDisplayBattleId !== (battle && battle.assetId || key);
       loading.hidden = false;
+      activeBattleAssetKey = key;
+      activeDisplayBattleId = battle && battle.assetId || key;
+      if (newDisplay) {
+        [playerImage,rivalImage].forEach(function (image) {
+          image.removeAttribute('src');
+          image.dataset.monsterId = '';
+          image.dataset.spriteFrame = '';
+          image.dataset.spritePending = '';
+          image.style.setProperty('--sprite-floor-shift','0%');
+        });
+        setBattleImage(playerImage,player);
+        setBattleImage(rivalImage,rival);
+        document.getElementById('player-fighter-spot').classList.remove('downed');
+        document.getElementById('rival-fighter-spot').classList.remove('downed');
+      } else {
+        setBattleImage(playerImage,player);
+        setBattleImage(rivalImage,rival);
+      }
       retryButton.hidden = true;
       document.getElementById('battle-loading-title').textContent = 'Preparing the arena';
       document.getElementById('battle-loading-copy').textContent = 'Loading both monsters and all their animation frames. Battle controls will unlock when they are ready.';
       battleButton.disabled = true;
+      const startedAt = Date.now();
       preloadBattleAssets(player,rival,retry).then(function (loaded) {
-        if (activeBattleAssetKey !== key || battleAssetKeyFor(state.monster,state.rival) !== key) return;
-        if (loaded) {
+        if (activeBattleAssetKey !== key || battleAssetKeyFor(state.monster,state.rival,state.battle) !== key) return;
+        return Promise.all([waitForVisibleImage(playerImage),waitForVisibleImage(rivalImage)]).then(function (visible) {
+        if (loaded && visible.every(Boolean)) {
+          return new Promise(function (resolve) { window.setTimeout(resolve,Math.max(0,350-(Date.now()-startedAt))); }).then(function () {
+          if (activeBattleAssetKey !== key || battleAssetKeyFor(state.monster,state.rival,state.battle) !== key) return;
           battleAssetsReady.add(key);
           loading.hidden = true;
           battleButton.disabled = false;
           renderBattle();
+          if (state.phase === 'battle' && state.battle && state.battle.pendingRival) scheduleRivalAttack(500);
+          });
         } else {
           document.getElementById('battle-loading-title').textContent = 'A monster image needs another try';
           document.getElementById('battle-loading-copy').textContent = 'The battle is paused until both creatures and their moves finish loading.';
           retryButton.hidden = false;
         }
+        });
       }).catch(function () {
         if (activeBattleAssetKey !== key) return;
         document.getElementById('battle-loading-title').textContent = 'A monster image needs another try';
@@ -712,22 +823,12 @@
       if (isBattle && state.monster && state.rival) {
         const playerImage = document.getElementById('player-model-fallback');
         const rivalImage = document.getElementById('rival-model-fallback');
-        if (playerImage.dataset.monsterId !== state.monster.id || !playerImage.getAttribute('src')) {
-          playerImage.src = monsterPreviewPath(state.monster);
-          playerImage.dataset.monsterId = state.monster.id;
-          playerImage.dataset.spriteFrame = '';
-          playerImage.dataset.spritePending = '';
-        }
+        setBattleImage(playerImage,state.monster);
         playerImage.style.setProperty('--sprite-scale', String(BATTLE_SPRITE_SCALE[state.monster.id] || 0.78));
-        playerImage.alt = state.monster.name;
-        if (rivalImage.dataset.monsterId !== state.rival.id || !rivalImage.getAttribute('src')) {
-          rivalImage.src = monsterPreviewPath(state.rival);
-          rivalImage.dataset.monsterId = state.rival.id;
-          rivalImage.dataset.spriteFrame = '';
-          rivalImage.dataset.spritePending = '';
-        }
+        playerImage.style.setProperty('--sprite-position-y',BATTLE_SPRITE_Y[state.monster.id] || '0px');
+        setBattleImage(rivalImage,state.rival);
         rivalImage.style.setProperty('--sprite-scale', String(BATTLE_SPRITE_SCALE[state.rival.id] || 0.78));
-        rivalImage.alt = state.rival.name;
+        rivalImage.style.setProperty('--sprite-position-y',BATTLE_SPRITE_Y[state.rival.id] || '0px');
         prepareBattleAssets(state.monster,state.rival,false);
       } else {
         document.getElementById('battle-loading').hidden = true;
@@ -741,6 +842,16 @@
     }
     function attackPower(monster) { return 10 + Number(monster.stats.strength || 0) * 2; }
     function maximumHealth(monster, level) { return 60 + Number(monster.stats.strength || 0) * 5 + Number(level || 0) * 3; }
+    function createScaledRival(template, level) {
+      const currentLevel = Math.max(0,Number(level) || 0);
+      const lateGrowth = Math.max(0,currentLevel - 20);
+      const levelGrowth = currentLevel + 1;
+      return Object.assign({},template,{ scalingVersion:2, stats:{
+        strength:template.stats.strength + levelGrowth + Math.floor(lateGrowth * 1.25),
+        defense:template.stats.defense + levelGrowth + Math.floor(lateGrowth * .25),
+        speed:template.stats.speed + levelGrowth + Math.floor(lateGrowth * .5)
+      } });
+    }
     function elementEffectiveness(attacking, defending) {
       if ((ELEMENT_ADVANTAGES[attacking] || []).includes(defending)) return 1.5;
       if ((ELEMENT_ADVANTAGES[defending] || []).includes(attacking)) return 0.7;
@@ -827,26 +938,40 @@
       const battle = state.battle;
       document.getElementById('player-combat-name').textContent = state.monster.name;
       document.getElementById('enemy-combat-name').textContent = state.rival.name;
+      document.getElementById('player-fighter-spot').classList.toggle('downed',!!(battle && battle.outcome && !battle.outcome.won));
+      document.getElementById('rival-fighter-spot').classList.toggle('downed',!!(battle && battle.outcome && battle.outcome.won));
       document.getElementById('player-element-name').textContent = state.monster.element + ' · ATK ' + attackPower(state.monster);
       document.getElementById('enemy-element-name').textContent = state.rival.element + ' · ATK ' + attackPower(state.rival);
-      document.getElementById('scene-caption').textContent = state.phase === 'battleReady' ? state.monster.name + ' faces ' + state.rival.name + ' · ' + (BATTLE_ARENAS.find(function (item) { return item.id === state.arena; }) || BATTLE_ARENAS[0]).name : 'Week 4 duel · choose a move, then your rival responds';
+      document.getElementById('scene-caption').textContent = battle && battle.outcome ? (battle.outcome.won ? state.monster.name + ' wins the duel' : state.monster.name + ' has been defeated') : (state.phase === 'battleReady' ? state.monster.name + ' faces ' + state.rival.name + ' · ' + (BATTLE_ARENAS.find(function (item) { return item.id === state.arena; }) || BATTLE_ARENAS[0]).name : 'Week 4 duel · choose a move, then your rival responds');
       const controls = document.getElementById('stage-combat-controls');
-      controls.hidden = state.phase !== 'battle';
+      controls.hidden = state.phase !== 'battle' || !!(battle && battle.ended);
       if (!battle) return;
       document.getElementById('player-hp-label').textContent = battle.playerHp + ' / ' + battle.playerMax;
       document.getElementById('enemy-hp-label').textContent = battle.rivalHp + ' / ' + battle.rivalMax;
       document.getElementById('player-hp-fill').style.width = Math.max(0, 100 * battle.playerHp / battle.playerMax) + '%';
       document.getElementById('enemy-hp-fill').style.width = Math.max(0, 100 * battle.rivalHp / battle.rivalMax) + '%';
+      const outcomeOverlay = document.getElementById('battle-result-overlay');
+      const outcomeCard = document.getElementById('battle-result-card');
+      outcomeOverlay.hidden = !battle.outcome;
+      if (battle.outcome) {
+        outcomeCard.classList.toggle('won',battle.outcome.won);
+        outcomeCard.classList.toggle('lost',!battle.outcome.won);
+        document.getElementById('battle-result-title').textContent = battle.outcome.won ? 'Victory!' : 'Defeat';
+        document.getElementById('battle-result-copy').textContent = battle.outcome.won ? state.monster.name + ' defeated ' + state.rival.name + '!' : state.monster.name + ' was defeated by ' + state.rival.name + '.';
+      }
       const log = battle.log || [];
       document.getElementById('battle-log').innerHTML = log.slice(-5).map(function (line) { return '<div>' + escapeHtml(line) + '</div>'; }).join('');
-      document.getElementById('turn-label').textContent = combatBusy ? state.rival.name + ' is choosing a move…' : 'Your turn · pick an attack';
-      const assetsReady = battleAssetsReady.has(battleAssetKeyFor(state.monster,state.rival));
+      document.getElementById('turn-label').textContent = battle.ended ? (battle.outcome && battle.outcome.won ? 'Battle won!' : 'Battle lost.') : (combatBusy ? state.rival.name + ' is choosing a move…' : 'Your turn · pick an attack');
+      const assetsReady = battleAssetsReady.has(battleAssetKeyFor(state.monster,state.rival,battle));
       document.getElementById('move-controls').innerHTML = (state.monster.moves || []).map(function (move, index) {
         const element = move.element || state.monster.element;
         const effect = elementEffectiveness(element, state.rival.element);
-        const hit = Math.max(1,Math.min(98,move.accuracy + (state.monster.stats.speed - 6) * 3));
+        const speedBonus = (state.monster.stats.speed - 6) * 3;
+        const hitMin = Math.max(55,Math.min(98,move.accuracy + speedBonus - 8));
+        const hitMax = Math.max(55,Math.min(98,move.accuracy + speedBonus + 8));
+        const hitRange = hitMin === hitMax ? hitMin + '%' : hitMin + '–' + hitMax + '%';
         const effectText = move.guard ? ' · Guard +' + move.guard : (effect > 1 ? ' · Super effective' : (effect < 1 ? ' · Resisted' : ''));
-        const moveInfo = move.guard ? escapeHtml(element) + effectText + ' · ' + hit + '% hit' : escapeHtml(element) + ' · Power ' + move.power + ' · ' + hit + '% hit' + effectText;
+        const moveInfo = move.guard ? escapeHtml(element) + effectText + ' · ' + hitRange + ' hit' : escapeHtml(element) + ' · Power ' + move.power + ' · ' + hitRange + ' hit' + effectText;
         return '<button class="move-button" type="button" data-move="' + index + '" ' + (combatBusy || battle.ended || !assetsReady ? 'disabled' : '') + '><span class="move-name">' + escapeHtml(move.name) + '</span><span class="move-meta">' + moveInfo + '</span></button>';
       }).join('');
       document.querySelectorAll('.move-button').forEach(function (button) {
@@ -918,7 +1043,7 @@
       trainControls.hidden = state.phase !== 'training';
       hatchButton.hidden = state.phase !== 'egg';
       hatchButton.textContent = state.previousMonsterId ? 'Hatch a new monster' : 'Hatch your first egg';
-      battleButton.disabled = state.phase === 'battleReady' && !battleAssetsReady.has(battleAssetKeyFor(state.monster,state.rival));
+      battleButton.disabled = state.phase === 'battleReady' && !battleAssetsReady.has(battleAssetKeyFor(state.monster,state.rival,state.battle));
       if (state.phase === 'egg') {
         phaseTitle.textContent = state.previousMonsterId ? 'A new egg is waiting' : 'Ready when you are';
         phaseCopy.textContent = state.previousMonsterId ? 'Your last monster has fallen. Hatch a different monster to begin again at Level 0.' : 'Hatch your first egg to begin a run. A new monster starts at Level 0.';
@@ -988,12 +1113,7 @@
     }
     function createRival() {
       const rivalTemplate = pickMonster(state.monster ? state.monster.id : '');
-      const growth = state.level + 1;
-      const rival = Object.assign({}, rivalTemplate, { stats: {
-        strength: rivalTemplate.stats.strength + growth,
-        defense: rivalTemplate.stats.defense + growth,
-        speed: rivalTemplate.stats.speed + growth
-      } });
+      const rival = createScaledRival(rivalTemplate,state.level);
       state.rival = rival;
       state.arena = BATTLE_ARENAS[randomInt(0, BATTLE_ARENAS.length - 1)].id;
       state.battle = createBattleState();
@@ -1002,7 +1122,7 @@
     function createBattleState() {
       const playerMax = maximumHealth(state.monster, state.level);
       const rivalMax = maximumHealth(state.rival, state.level);
-      return { playerMax:playerMax, playerHp:playerMax, rivalMax:rivalMax, rivalHp:rivalMax, playerGuard:0, rivalGuard:0, pendingRival:false, log:['Your rival is ready. Choose Battle rival when you are ready.'], ended:false };
+      return { assetId:Date.now().toString(36) + '-' + randomInt(1000,9999), playerMax:playerMax, playerHp:playerMax, rivalMax:rivalMax, rivalHp:rivalMax, playerGuard:0, rivalGuard:0, pendingRival:false, log:['Your rival is ready. Choose Battle rival when you are ready.'], ended:false, outcome:null };
     }
     function trainStat(key) {
       if (state.phase !== 'training' || !state.monster || getTrainingCount() >= 3 || !STAT_LIST.some(function (item) { return item.key === key; })) return;
@@ -1016,10 +1136,19 @@
     }
     function startBattle() {
       if (state.phase !== 'battleReady' || !state.monster || !state.rival) return;
+      if (!battleAssetsReady.has(battleAssetKeyFor(state.monster,state.rival,state.battle))) return;
       window.clearTimeout(rivalTurnTimer);
+      window.clearTimeout(battleResultTimer);
       rivalTurnTimer = 0;
       combatBusy = false;
-      state.battle = createBattleState();
+      if (!state.battle) state.battle = createBattleState();
+      state.battle.playerHp = state.battle.playerMax;
+      state.battle.rivalHp = state.battle.rivalMax;
+      state.battle.playerGuard = 0;
+      state.battle.rivalGuard = 0;
+      state.battle.pendingRival = false;
+      state.battle.ended = false;
+      state.battle.outcome = null;
       state.battle.log = ['The battle begins! Choose your first attack.'];
       state.phase = 'battle';
       saveState();
@@ -1029,25 +1158,73 @@
       state.battle.log.push(line);
       if (state.battle.log.length > 12) state.battle.log.shift();
     }
-    function animateFallbackAttack(side) {
+    function animateFallbackAttack(side, move) {
       const fallback = document.getElementById(side === 'player' ? 'player-model-fallback' : 'rival-model-fallback');
       if (!fallback || fallback.closest('[hidden]')) return Promise.resolve();
       const className = side === 'player' ? 'attacking-player' : 'attacking-rival';
-      fallback.classList.remove(className);
-      void fallback.offsetWidth;
-      fallback.classList.add(className);
-      fallback.addEventListener('animationend',function () { fallback.classList.remove(className); },{once:true});
+      if (!(move && move.ranged)) {
+        fallback.classList.remove(className);
+        void fallback.offsetWidth;
+        fallback.classList.add(className);
+        fallback.addEventListener('animationend',function () { fallback.classList.remove(className); },{once:true});
+      }
       const spriteAnimation = window.monsterSpritesAttack ? window.monsterSpritesAttack(side) : null;
       return spriteAnimation && typeof spriteAnimation.then === 'function' ? spriteAnimation : new Promise(function (resolve) { window.setTimeout(resolve,900); });
     }
-    function animateFallbackHit(side) {
+    function projectileColor(element) {
+      return ({ Fire:'#ff7048', Water:'#55c9ff', Grass:'#87d768', Earth:'#d9ac70', Light:'#fff1a5', Dark:'#a66aff', Ice:'#9cecff', Electric:'#ffe65b', Psychic:'#ff7bf1', Ghost:'#85b7ff', Poison:'#a7e34e', Air:'#c3f4ff', Metal:'#e5e9f1' })[element] || '#c6a7ff';
+    }
+    function animateProjectile(side, element) {
+      const scene = document.querySelector('.stage-scene');
+      const attacker = document.getElementById(side === 'player' ? 'player-model-fallback' : 'rival-model-fallback');
+      const target = document.getElementById(side === 'player' ? 'rival-model-fallback' : 'player-model-fallback');
+      if (!scene || !attacker || !target) return Promise.resolve();
+      const sceneRect = scene.getBoundingClientRect();
+      const from = attacker.getBoundingClientRect();
+      const to = target.getBoundingClientRect();
+      if (!from.width || !to.width) return Promise.resolve();
+      const startX = from.left + from.width * .72 - sceneRect.left;
+      const startY = from.top + from.height * .45 - sceneRect.top;
+      const endX = to.left + to.width * .35 - sceneRect.left;
+      const endY = to.top + to.height * .48 - sceneRect.top;
+      const dx = endX - startX;
+      const dy = endY - startY;
+      const trail = document.createElement('span');
+      trail.className = 'projectile-trail';
+      trail.setAttribute('aria-hidden','true');
+      trail.style.left = (startX - 37) + 'px';
+      trail.style.top = (startY - 5) + 'px';
+      trail.style.setProperty('--projectile-color',projectileColor(element));
+      trail.style.setProperty('--projectile-angle',Math.atan2(dy,dx) + 'rad');
+      trail.style.setProperty('--projectile-dx',dx + 'px');
+      trail.style.setProperty('--projectile-dy',dy + 'px');
+      scene.appendChild(trail);
+      return new Promise(function (resolve) { window.setTimeout(function () { trail.remove(); resolve(); },540); });
+    }
+    function animateImpact(side, element) {
+      const scene = document.querySelector('.stage-scene');
+      const target = document.getElementById(side === 'player' ? 'player-model-fallback' : 'rival-model-fallback');
+      if (!scene || !target) return Promise.resolve();
+      const sceneRect = scene.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const burst = document.createElement('span');
+      burst.className = 'impact-burst';
+      burst.setAttribute('aria-hidden','true');
+      burst.style.left = (targetRect.left + targetRect.width * .5 - sceneRect.left) + 'px';
+      burst.style.top = (targetRect.top + targetRect.height * .5 - sceneRect.top) + 'px';
+      burst.style.color = projectileColor(element);
+      scene.appendChild(burst);
+      return new Promise(function (resolve) { window.setTimeout(function () { burst.remove(); resolve(); },480); });
+    }
+    function animateFallbackHit(side, element) {
       const fallback = document.getElementById(side === 'player' ? 'player-model-fallback' : 'rival-model-fallback');
       if (!fallback) return Promise.resolve();
       const className = side === 'player' ? 'taking-hit-player' : 'taking-hit-rival';
       fallback.classList.remove(className);
       void fallback.offsetWidth;
       fallback.classList.add(className);
-      return new Promise(function (resolve) {
+      const impact = animateImpact(side,element);
+      const reaction = new Promise(function (resolve) {
         let done = false;
         let timer = 0;
         function finish() {
@@ -1060,23 +1237,45 @@
         fallback.addEventListener('animationend',finish,{once:true});
         timer = window.setTimeout(finish,420);
       });
+      return Promise.all([reaction,impact]);
     }
     function damageForMove(move, attacker, defender, guard) {
-      const rawDamage = Math.max(2, move.power + Math.floor(attackPower(attacker) * .55) + randomInt(-2,2) - Number(defender.stats.defense || 0) - (guard || 0));
+      const rivalPressure = attacker === state.rival ? Math.floor(Math.max(0,state.level - 20) * 1.5) : 0;
+      const rawDamage = Math.max(2, move.power + Math.floor(attackPower(attacker) * .55) + randomInt(-2,2) + rivalPressure - Number(defender.stats.defense || 0) - (guard || 0));
       const element = move.element || attacker.element;
       const multiplier = elementEffectiveness(element, defender.element);
       return { damage:Math.max(2,Math.round(rawDamage * multiplier)), multiplier:multiplier, element:element };
+    }
+    function rollHitChance(move, attacker) {
+      return Math.max(55,Math.min(98,move.accuracy + (Number(attacker.stats.speed || 0) - 6) * 3 + randomInt(-8,8)));
     }
     function finishBattle(won) {
       if (!state.battle || state.battle.ended) return;
       window.clearTimeout(rivalTurnTimer);
       rivalTurnTimer = 0;
       state.battle.ended = true;
+      state.battle.pendingRival = false;
       combatBusy = false;
+      const defeatedSpot = document.getElementById(won ? 'rival-fighter-spot' : 'player-fighter-spot');
+      defeatedSpot.classList.add('downed');
+      if (window.monsterSpritesDowned) window.monsterSpritesDowned(won ? 'rival' : 'player');
+      state.battle.outcome = { won:won, at:Date.now() };
+      saveState();
+      renderBattle();
+      renderWeekRoadmap();
+      const battleId = state.battle.assetId;
+      window.clearTimeout(battleResultTimer);
+      battleResultTimer = window.setTimeout(function () { settleBattleResult(battleId); },2000);
+    }
+    function settleBattleResult(battleId) {
+      if (!state.battle || !state.battle.ended || state.battle.assetId !== battleId || !state.battle.outcome) return;
+      window.clearTimeout(battleResultTimer);
+      battleResultTimer = 0;
+      const won = state.battle.outcome.won;
       if (won) {
         const defeated = state.rival.name;
         state.level += 1;
-        recordScore(state.level, state.monster.name);
+        recordScore(state.level,state.monster.name);
         state.trainingCount = 0;
         state.trainingFocus = '';
         state.arena = '';
@@ -1094,7 +1293,7 @@
         state.trainingCount = 0;
         state.trainingFocus = '';
         state.arena = '';
-        state.room = ROOMS[randomInt(0, ROOMS.length - 1)].id;
+        state.room = ROOMS[randomInt(0,ROOMS.length - 1)].id;
         state.rival = null;
         state.battle = null;
         state.phase = 'egg';
@@ -1109,16 +1308,17 @@
       const availableMoves = moves.length ? moves : (state.rival.moves || []);
       const move = availableMoves.length ? availableMoves[randomInt(0, availableMoves.length - 1)] : { name:'Quick Strike', power:6, accuracy:85 };
       document.getElementById('turn-label').textContent = state.rival.name + ' is winding up an attack…';
-      await animateFallbackAttack('rival');
+      await animateFallbackAttack('rival',move);
+      if (move.ranged) await animateProjectile('rival',move.element || state.rival.element);
       if (state.phase !== 'battle' || !state.battle || !state.monster || !state.rival) { combatBusy = false; return; }
-      const hitChance = Math.max(55, Math.min(98, move.accuracy + (state.rival.stats.speed - 6) * 3));
+      const hitChance = rollHitChance(move,state.rival);
       if (randomInt(1,100) > hitChance) {
         addBattleLog(state.rival.name + ' used ' + move.name + ', but ' + state.monster.name + ' dodged it!');
       } else if (move.guard) {
         state.battle.rivalGuard += move.guard;
         addBattleLog(state.rival.name + ' used ' + move.name + ' and raised a guard.');
       } else {
-        await animateFallbackHit('player');
+        await animateFallbackHit('player',move.element || state.rival.element);
         if (state.phase !== 'battle' || !state.battle || !state.monster || !state.rival) { combatBusy = false; return; }
         const blocked = state.battle.playerGuard || 0;
         const result = damageForMove(move, state.rival, state.monster, blocked);
@@ -1126,6 +1326,8 @@
         state.battle.playerGuard = 0;
         state.battle.playerHp = Math.max(0, state.battle.playerHp - damage);
         addBattleLog(state.rival.name + ' used ' + move.name + ' (' + result.element + ') for ' + damage + ' damage.' + (result.multiplier > 1 ? ' Super effective!' : (result.multiplier < 1 ? ' Your element resisted it.' : '')));
+        renderBattle();
+        saveState();
       }
       if (state.battle.playerHp <= 0) { state.battle.pendingRival = false; saveState(); finishBattle(false); return; }
       state.battle.pendingRival = false;
@@ -1159,16 +1361,17 @@
       combatBusy = true;
       renderBattle();
       document.getElementById('turn-label').textContent = state.monster.name + ' is winding up an attack…';
-      await animateFallbackAttack('player');
+      await animateFallbackAttack('player',move);
+      if (move.ranged) await animateProjectile('player',move.element || state.monster.element);
       if (state.phase !== 'battle' || !state.battle || state.battle.ended || !state.monster || !state.rival) { combatBusy = false; return; }
-      const hitChance = Math.max(55, Math.min(98, move.accuracy + (state.monster.stats.speed - 6) * 3));
+      const hitChance = rollHitChance(move,state.monster);
       if (randomInt(1,100) > hitChance) {
         addBattleLog(state.monster.name + ' used ' + move.name + ', but ' + state.rival.name + ' dodged it!');
       } else if (move.guard) {
         state.battle.playerGuard += move.guard;
         addBattleLog(state.monster.name + ' used ' + move.name + ' and raised a guard.');
       } else {
-        await animateFallbackHit('rival');
+        await animateFallbackHit('rival',move.element || state.monster.element);
         if (state.phase !== 'battle' || !state.battle || state.battle.ended || !state.monster || !state.rival) { combatBusy = false; return; }
         const blocked = state.battle.rivalGuard || 0;
         const result = damageForMove(move, state.monster, state.rival, blocked);
@@ -1176,6 +1379,8 @@
         state.battle.rivalGuard = 0;
         state.battle.rivalHp = Math.max(0, state.battle.rivalHp - damage);
         addBattleLog(state.monster.name + ' used ' + move.name + ' (' + result.element + ') for ' + damage + ' damage.' + (result.multiplier > 1 ? ' Super effective!' : (result.multiplier < 1 ? ' Not very effective.' : '')));
+        renderBattle();
+        saveState();
       }
       if (state.battle.rivalHp <= 0) { state.battle.pendingRival = false; saveState(); finishBattle(true); return; }
       state.battle.pendingRival = true;
@@ -1199,9 +1404,24 @@
       saveState();
       renderLeaderboard();
     });
+    const fullscreenButton = document.getElementById('fullscreen-button');
+    function updateFullscreenButton() {
+      const isFullscreen = document.fullscreenElement === document.getElementById('game-main');
+      fullscreenButton.textContent = isFullscreen ? '⛶ Exit fullscreen' : '⛶ Fullscreen';
+      fullscreenButton.setAttribute('aria-label',isFullscreen ? 'Exit fullscreen game view' : 'View the whole game fullscreen');
+    }
+    fullscreenButton.addEventListener('click',function () {
+      const game = document.getElementById('game-main');
+      if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
+      else if (game.requestFullscreen) game.requestFullscreen().catch(function () {});
+    });
+    document.addEventListener('fullscreenchange',updateFullscreenButton);
     render();
-    if (state.phase === 'battle' && state.battle && state.battle.pendingRival) scheduleRivalAttack(500);
+    if (state.phase === 'battle' && state.battle && state.battle.ended && state.battle.outcome) {
+      const remaining = Math.max(0,2000-(Date.now()-Number(state.battle.outcome.at || Date.now())));
+      battleResultTimer = window.setTimeout(function () { settleBattleResult(state.battle && state.battle.assetId); },remaining);
+    }
   </script>
-  <script src="scripts/monster-sprites.js?v=20261107-5"></script>
+  <script src="scripts/monster-sprites.js?v=20261107-7"></script>
 </body>
 </html>
