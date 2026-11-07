@@ -55,6 +55,22 @@
     h1 span { color: var(--purple); }
     .hero-copy { max-width: 640px; margin: 17px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
     .hero-note { flex: 0 0 auto; max-width: 230px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.025); color: #c7c2d8; font-size: 11px; line-height: 1.6; }
+    .game-start { position:relative; display:grid; grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr); align-items:center; gap:30px; min-height:min(670px,calc(100vh - 115px)); margin-block:25px 64px; padding:clamp(26px,6vw,68px); overflow:hidden; border:1px solid rgba(168,139,255,.25); border-radius:28px; background:radial-gradient(ellipse at 76% 42%,rgba(120,77,211,.24),transparent 39%),radial-gradient(ellipse at 8% 90%,rgba(45,158,169,.12),transparent 40%),linear-gradient(145deg,#171522,#0d0d15 70%); box-shadow:0 30px 90px rgba(0,0,0,.32); }
+    .game-start::after { position:absolute; right:-145px; bottom:-245px; width:440px; height:440px; border:1px solid rgba(125,228,232,.1); border-radius:50%; box-shadow:0 0 0 35px rgba(125,228,232,.025),0 0 0 75px rgba(125,228,232,.018); content:""; pointer-events:none; }
+    .start-copy,.start-egg-panel { position:relative; z-index:1; }
+    .start-title { max-width:650px; margin:0; font-size:clamp(42px,7vw,76px); line-height:.98; letter-spacing:-.075em; }
+    .start-title span { color:var(--purple); }
+    .start-description { max-width:540px; margin:18px 0 0; color:var(--muted); font-size:14px; line-height:1.75; }
+    .start-facts { display:flex; flex-wrap:wrap; gap:8px; margin-top:23px; }
+    .start-facts span { padding:8px 11px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.035); color:#ddd6ed; font-size:10px; }
+    .start-button { min-height:48px; margin-top:27px; padding-inline:23px; background:linear-gradient(100deg,#a88bff,#c6a7ff); color:#171126; box-shadow:0 10px 32px rgba(168,139,255,.22); }
+    .start-footnote { margin:12px 0 0; color:#89849b; font-size:10px; }
+    .start-egg-panel { display:grid; justify-items:center; min-height:400px; align-content:center; padding:28px 18px 20px; border:1px solid rgba(255,255,255,.12); border-radius:24px; background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.012)); box-shadow:inset 0 1px rgba(255,255,255,.04),0 22px 55px rgba(0,0,0,.25); }
+    .egg-status { color:var(--cyan); font-size:9px; font-weight:850; letter-spacing:.18em; text-transform:uppercase; }
+    .start-egg-art { display:grid; width:min(100%,290px); height:300px; place-items:center; filter:drop-shadow(0 22px 30px rgba(0,0,0,.42)); }
+    .start-egg-art svg,.start-egg-art img { width:100%; height:100%; object-fit:contain; overflow:visible; filter:drop-shadow(0 14px 22px rgba(0,0,0,.4)); animation:eggFloat 3.5s ease-in-out infinite; }
+    .egg-caption { margin:4px 0 0; color:#c7c2d8; font-size:11px; text-align:center; }
+    @keyframes eggFloat { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-8px) rotate(1deg)} }
     .game-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, .72fr); gap: 18px; align-items: start; padding-bottom: 64px; }
     .card { border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(155deg, rgba(255,255,255,.045), rgba(255,255,255,.012)); box-shadow: 0 22px 65px rgba(0,0,0,.18); }
     .arena { overflow: hidden; }
@@ -163,6 +179,13 @@
     .stage-scene[data-arena="coast"] { background-image:linear-gradient(180deg,rgba(12,20,32,.08),rgba(8,18,24,.2)),url('/assets/arenas/coast.svg'); }
     .stage-scene[data-arena="crystal"] { background-image:linear-gradient(180deg,rgba(17,13,35,.08),rgba(9,13,24,.2)),url('/assets/arenas/crystal.svg'); }
     .stage-scene::before { position:absolute; z-index:0; inset:0; background:linear-gradient(180deg,rgba(8,10,19,.22) 0%,transparent 35%,transparent 70%,rgba(5,8,13,.25) 100%); content:""; pointer-events:none; }
+    .battle-loading { position:absolute; z-index:5; inset:0; display:grid; place-items:center; padding:18px; background:rgba(7,8,15,.74); backdrop-filter:blur(8px); }
+    .battle-loading[hidden] { display:none; }
+    .battle-loading-card { display:grid; justify-items:center; gap:10px; width:min(100%,340px); padding:21px; border:1px solid rgba(168,139,255,.3); border-radius:17px; background:rgba(14,13,23,.94); box-shadow:0 16px 45px rgba(0,0,0,.38); text-align:center; }
+    .loading-spinner { width:31px; height:31px; border:3px solid rgba(255,255,255,.16); border-top-color:var(--cyan); border-right-color:var(--purple); border-radius:50%; animation:loadingSpin .8s linear infinite; }
+    .loading-title { margin:0; color:#fff; font-size:13px; font-weight:800; }
+    .loading-copy { margin:0; color:#c6bfd6; font-size:10px; line-height:1.6; }
+    @keyframes loadingSpin { to{transform:rotate(360deg)} }
     .stage-scene canvas { display:block; width:100%; height:330px; }
     .battle-model-fallback { position:absolute; z-index:1; inset:0; display:block; pointer-events:none; }
     .battle-model-fallback[hidden] { display:none; }
@@ -241,6 +264,9 @@
       .side-stack { grid-template-columns: repeat(2, minmax(0,1fr)); }
       .game-hero { align-items: flex-start; flex-direction: column; gap: 18px; }
       .hero-note { max-width: 480px; }
+      .game-start { grid-template-columns:minmax(0,1fr) minmax(250px,.8fr); gap:18px; }
+      .start-egg-panel { min-height:350px; }
+      .start-egg-art { height:260px; }
     }
     @media (max-width: 600px) {
       .shell { width: min(var(--max), calc(100% - 30px)); }
@@ -248,6 +274,11 @@
       .nav-links { gap: 11px; }
       .nav-links a { font-size: 10px; }
       .game-hero { padding-block: 41px 25px; }
+      .game-start { grid-template-columns:1fr; min-height:0; gap:24px; margin-block:16px 42px; padding:27px 20px; border-radius:22px; }
+      .start-title { font-size:clamp(43px,12vw,62px); }
+      .start-description { font-size:12px; }
+      .start-egg-panel { min-height:300px; }
+      .start-egg-art { width:230px; height:235px; }
       .game-layout { padding-bottom: 42px; }
       .arena-head { padding: 15px; }
       .week-roadmap { gap: 4px; padding: 14px 12px 0; }
@@ -310,7 +341,23 @@
       <div class="hero-note"><strong>One run = four in-game weeks.</strong><br>No real-world waiting. Choose any stat each of the first three weeks, then command your attacks in Week 4.</div>
     </section>
 
-    <div class="game-layout">
+    <section class="game-start" id="game-start" aria-labelledby="start-title" hidden>
+      <div class="start-copy">
+        <p class="eyebrow">EdgeSquirrel · Hatch &amp; Battle</p>
+        <h1 class="start-title" id="start-title">Raise your monster.<br><span>Claim the arena.</span></h1>
+        <p class="start-description">A mystery creature is waiting inside its own elemental egg. Hatch it, shape its strengths over three training weeks, then lead it into a turn-based battle.</p>
+        <div class="start-facts"><span>3 weeks to train</span><span>Choose any stat</span><span>Battle in week 4</span></div>
+        <button class="button start-button" id="start-game-button" type="button">Enter the hatchery <span aria-hidden="true">→</span></button>
+        <p class="start-footnote">Your run and leaderboard are saved in this browser.</p>
+      </div>
+      <div class="start-egg-panel">
+        <span class="egg-status">A mystery egg awaits</span>
+        <div class="start-egg-art" id="start-egg-art" aria-hidden="true"></div>
+        <p class="egg-caption" id="start-egg-caption">Its creature and element are revealed when it hatches.</p>
+      </div>
+    </section>
+
+    <div class="game-layout" id="game-layout">
       <section class="card arena" aria-label="Monster game">
         <div class="arena-head">
           <div class="level-block"><span class="level-label">Your level</span><strong class="level-number" id="current-level">0</strong></div>
@@ -338,6 +385,7 @@
           <section class="battle-screen stage-battle" id="battle-screen" aria-label="Battle arena" hidden>
             <div class="stage-scene">
               <div class="battle-model-fallback" id="battle-art-fallback" hidden aria-hidden="true"><div class="battle-fighter-spot player-spot"><img id="player-model-fallback" alt=""></div><div class="battle-fighter-spot rival-spot"><img id="rival-model-fallback" alt=""></div></div>
+              <div class="battle-loading" id="battle-loading" role="status" aria-live="polite" hidden><div class="battle-loading-card"><span class="loading-spinner" aria-hidden="true"></span><p class="loading-title" id="battle-loading-title">Preparing the arena</p><p class="loading-copy" id="battle-loading-copy">Loading both monsters and their animation frames. Battle controls will unlock when they are ready.</p><button class="button button-secondary" id="retry-battle-assets" type="button" hidden>Retry loading</button></div></div>
               <div class="effect-flash" id="effect-flash"></div>
               <div class="stage-hud">
                 <div class="stage-fighter player"><div class="fighter-heading"><span id="player-combat-name">Your monster</span><span>YOU</span></div><div class="fighter-type" id="player-element-name">Element</div><div class="fighter-hp-text"><span>Health</span><strong id="player-hp-label">0 / 0</strong></div><div class="hp-track"><div class="hp-fill" id="player-hp-fill"></div></div></div>
@@ -460,10 +508,12 @@
     const DEFAULT_STATE = {
       trainerName: 'EdgeSquirrel',
       monster: null,
+      pendingMonsterId: '',
       previousMonsterId: '',
       level: 0,
       trainingCount: 0,
-      phase: 'egg',
+      phase: 'start',
+      welcomeSeen: false,
       rival: null,
       battle: null,
       room: 'crystal',
@@ -473,8 +523,14 @@
       scores: []
     };
     let state = loadState();
+    if (!MONSTERS.some(function (monster) { return monster.id === state.pendingMonsterId; }) || state.pendingMonsterId === state.previousMonsterId) {
+      state.pendingMonsterId = pickMonster(state.previousMonsterId).id;
+      saveState();
+    }
     let combatBusy = !!(state.phase === 'battle' && state.battle && state.battle.pendingRival);
     let rivalTurnTimer = 0;
+    const battleAssetsReady = new Set();
+    let activeBattleAssetKey = '';
 
     function loadState() {
       try {
@@ -486,6 +542,7 @@
           scores: Array.isArray(saved.scores) ? saved.scores : [],
           battle: saved.battle && typeof saved.battle === 'object' ? saved.battle : null
         });
+        restored.pendingMonsterId = LEGACY_MONSTER_IDS[restored.pendingMonsterId] || restored.pendingMonsterId || '';
         restored.previousMonsterId = LEGACY_MONSTER_IDS[restored.previousMonsterId] || restored.previousMonsterId;
         if (restored.monster) restored.monster = restoreMonster(restored.monster);
         if (restored.rival) restored.rival = restoreMonster(restored.rival);
@@ -495,6 +552,8 @@
         }
         if (!['strength','defense','speed',''].includes(restored.trainingFocus)) restored.trainingFocus = '';
         if (restored.phase === 'battle' && !restored.battle) restored.phase = 'battleReady';
+        if (!['start','egg','training','battleReady','battle'].includes(restored.phase)) restored.phase = restored.monster ? 'training' : 'start';
+        restored.welcomeSeen = saved.welcomeSeen === true;
         return restored;
       } catch {
         return Object.assign({}, DEFAULT_STATE);
@@ -519,6 +578,29 @@
       let choices = MONSTERS.filter(function (monster) { return !monster.rare && monster.id !== excludeId; });
       if (!choices.length) choices = MONSTERS.filter(function (monster) { return !monster.rare; });
       return choices[randomInt(0, choices.length - 1)];
+    }
+    function eggArt(monster) {
+      const motifs = {
+        'ember-drake':'<path d="M110 168c-27-21-8-41 1-58 8 15 25 22 17 42-4 9-9 13-18 16Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="M111 153c-8-10-4-18 1-26 7 10 8 17-1 26Z" fill="currentColor"/>',
+        'reef-strider':'<path d="M68 93q42-27 84 0M63 116q47-26 94 0M68 139q42-22 84 0" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="m90 73 10-12 10 12 10-12 10 12" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>',
+        'briar-raptor':'<path d="M110 165V79m0 27q-28-28-39-7 14 21 39 11m0 19q27-27 39-6-14 19-39 10" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="m110 78-10-17 10 4 10-12-1 21Z" fill="currentColor"/>',
+        'rock-golem':'<path d="m73 86 21-12 16 9 16-10 21 15-8 22-22 5-13-8-19 9-15-13Zm7 41 20-8 12 11 20-8 13 13-14 16-20-4-14 8-20-12Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><path d="m106 107 7 8-7 9 7 8" fill="none" stroke="#fff1b2" stroke-width="3"/>',
+        dawncrest:'<path d="M110 118V68m0 100v-29m-2-21-28-29m58 58 22 22m-50-52 28-29m-58 58-20 20m50-50H69m82 0h-41" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="110" cy="118" r="17" fill="none" stroke="currentColor" stroke-width="5"/>',
+        'shadow-spider':'<path d="M110 120 84 86m26 34 27-34m-27 34-35 3m35-3 36 3m-36-3-25 37m25-37 26 37" fill="none" stroke="currentColor" stroke-width="4"/><path d="M95 109q15-17 30 0l-4 24h-22Z" fill="currentColor"/><circle cx="102" cy="119" r="3" fill="#fff"/><circle cx="118" cy="119" r="3" fill="#fff"/>',
+        'frost-wolf':'<path d="m80 150 17-27-12-18 20-31 10 26 18-21 18 24-17 15 14 22-28-9-17 16Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><path d="m100 87 8 17 11-10 8 19-18 13-12-11 10-10Z" fill="currentColor" opacity=".65"/>',
+        'volt-lynx':'<path d="m122 67-37 55h25l-12 43 42-61h-26l8-37Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="m80 82-12-10m78 76 12 11" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+        'crystal-squirrel':'<path d="m78 113 11-26 12 26Zm27 0 13-45 15 45Zm28 0 9-26 12 26Zm-49 32 13-23 13 23Zm32 0 14-23 13 23Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="m120 78 8 27-11-8-7 12Z" fill="currentColor"/>',
+        'hooded-ghoul':'<path d="M79 159q-16-20 0-38t0-35m31 74q-17-22 0-42t0-40m31 81q-16-21 0-39t0-35" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M91 110q19-21 38 0v30q-19 14-38 0Z" fill="currentColor" opacity=".65"/><circle cx="101" cy="124" r="3" fill="#fff"/><circle cx="119" cy="124" r="3" fill="#fff"/>',
+        'mire-toad':'<circle cx="82" cy="95" r="9" fill="currentColor"/><circle cx="133" cy="87" r="7" fill="currentColor"/><circle cx="109" cy="116" r="10" fill="currentColor"/><circle cx="145" cy="126" r="9" fill="currentColor"/><circle cx="82" cy="146" r="6" fill="currentColor"/><circle cx="126" cy="158" r="7" fill="currentColor"/><path d="M91 72q19-15 38 0" fill="none" stroke="currentColor" stroke-width="4"/>',
+        'gale-kite':'<path d="M76 155q45-20 68-81m-58 87q45-22 73-61m-88 45q20-45 76-60" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="m117 85 18-22m-56 67-18 4m79 6 18 8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+        'metal-serpent':'<path d="M70 94q40-22 80 0m-89 20q49-23 98 0m-96 21q47-21 94 0m-79 20q36-16 70 0" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="m96 73 14-10 14 10-14 10Z" fill="currentColor"/>',
+        'poison-moth':'<path d="M108 111q-38-48-43-12-3 26 41 31m6-19q38-48 43-12 3 26-41 31m-4-35v55" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="80" cy="104" r="7" fill="currentColor"/><circle cx="140" cy="104" r="7" fill="currentColor"/><circle cx="110" cy="132" r="6" fill="currentColor"/>'
+      };
+      const color = monster ? monster.color : '#8b70d4';
+      const light = monster ? monster.light : '#e0d1ff';
+      const mark = monster ? (motifs[monster.id] || motifs['ember-drake']) : '<path d="m110 145 8-26-12 2 14-39-2 28 13-2Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/>';
+      const name = monster ? monster.name + ' egg' : 'A mysterious egg';
+      return '<svg viewBox="0 0 220 240" role="img" aria-label="' + escapeHtml(name) + '" style="color:' + light + '"><ellipse cx="110" cy="220" rx="69" ry="11" fill="#05050a" opacity=".55"/><ellipse cx="110" cy="120" rx="77" ry="91" fill="' + color + '" opacity=".1"/><path d="M110 23C78 23 52 66 52 123c0 51 22 82 58 82s58-31 58-82c0-57-26-100-58-100Z" fill="' + color + '" stroke="' + light + '" stroke-width="5"/><path d="M110 30C86 30 65 63 62 106c13-19 29-27 48-27s35 8 48 27c-3-43-24-76-48-76Z" fill="#fff" opacity=".18"/><path d="M110 39c-20 0-39 34-39 77 0 43 15 72 39 72s39-29 39-72c0-43-19-77-39-77Z" fill="none" stroke="' + light + '" stroke-opacity=".2" stroke-width="2"/>' + mark + '<path d="M72 67q-9 29-8 53" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="5" stroke-linecap="round"/><circle cx="77" cy="53" r="3" fill="#fff" opacity=".8"/><circle cx="153" cy="143" r="2.5" fill="' + light + '" opacity=".8"/></svg>';
     }
     function monsterArt(monster) {
       if (!monster) {
@@ -546,16 +628,77 @@
       const number = Math.max(1, Number(frame) || 1);
       return '/' + id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png?v=20261107-3';
     }
+    function battleAssetKeyFor(player, rival) {
+      return player && rival ? player.id + '|' + rival.id : '';
+    }
+    function preloadBattleAssets(player, rival, retry) {
+      if (window.monsterSpritesWarmBattle) return window.monsterSpritesWarmBattle(player, rival, !!retry);
+      const requests = [];
+      [player,rival].forEach(function (monster) {
+        [['idle',4],['attack',6]].forEach(function (animation) {
+          for (let frame = 1; frame <= animation[1]; frame += 1) {
+            requests.push(new Promise(function (resolve) {
+              const image = new Image();
+              image.onload = function () { resolve(true); };
+              image.onerror = function () { resolve(false); };
+              image.src = monsterPreviewPath(monster,animation[0],frame);
+            }));
+          }
+        });
+      });
+      return Promise.all(requests).then(function (results) { return results.every(Boolean); });
+    }
+    function prepareBattleAssets(player, rival, retry) {
+      const key = battleAssetKeyFor(player,rival);
+      const loading = document.getElementById('battle-loading');
+      const retryButton = document.getElementById('retry-battle-assets');
+      const battleButton = document.getElementById('battle-button');
+      if (battleAssetsReady.has(key) && !retry) {
+        loading.hidden = true;
+        battleButton.disabled = false;
+        return;
+      }
+      if (activeBattleAssetKey === key && !retry) {
+        loading.hidden = false;
+        battleButton.disabled = true;
+        return;
+      }
+      activeBattleAssetKey = key;
+      loading.hidden = false;
+      retryButton.hidden = true;
+      document.getElementById('battle-loading-title').textContent = 'Preparing the arena';
+      document.getElementById('battle-loading-copy').textContent = 'Loading both monsters and all their animation frames. Battle controls will unlock when they are ready.';
+      battleButton.disabled = true;
+      preloadBattleAssets(player,rival,retry).then(function (loaded) {
+        if (activeBattleAssetKey !== key || battleAssetKeyFor(state.monster,state.rival) !== key) return;
+        if (loaded) {
+          battleAssetsReady.add(key);
+          loading.hidden = true;
+          battleButton.disabled = false;
+          renderBattle();
+        } else {
+          document.getElementById('battle-loading-title').textContent = 'A monster image needs another try';
+          document.getElementById('battle-loading-copy').textContent = 'The battle is paused until both creatures and their moves finish loading.';
+          retryButton.hidden = false;
+        }
+      }).catch(function () {
+        if (activeBattleAssetKey !== key) return;
+        document.getElementById('battle-loading-title').textContent = 'A monster image needs another try';
+        document.getElementById('battle-loading-copy').textContent = 'The battle is paused until both creatures and their moves finish loading.';
+        retryButton.hidden = false;
+      });
+    }
     function renderArt() {
       const fallback = document.getElementById('art-fallback');
       const previewPath = monsterPreviewPath(state.monster);
-      const shownId = state.monster ? state.monster.id : 'mystery-egg';
+      const eggMonster = MONSTERS.find(function (monster) { return monster.id === state.pendingMonsterId; }) || null;
+      const shownId = state.monster ? state.monster.id : 'egg-' + (eggMonster ? eggMonster.id : 'mystery');
       if (fallback.dataset.monsterId !== shownId) {
-        fallback.innerHTML = previewPath ? '<img id="single-monster-sprite" src="' + previewPath + '" alt="' + escapeHtml(state.monster.name) + '">' : monsterArt(null);
+        fallback.innerHTML = previewPath ? '<img id="single-monster-sprite" src="' + previewPath + '" alt="' + escapeHtml(state.monster.name) + '">' : eggArt(eggMonster);
         fallback.dataset.monsterId = shownId;
       }
       fallback.hidden = false;
-      document.getElementById('monster-art').setAttribute('aria-label', state.monster ? state.monster.name + ' preview' : 'Mysterious egg preview');
+      document.getElementById('monster-art').setAttribute('aria-label', state.monster ? state.monster.name + ' preview' : (eggMonster ? eggMonster.name + ' egg' : 'Mysterious egg'));
       const room = ROOMS.find(function (item) { return item.id === state.room; }) || ROOMS[0];
       const arena = BATTLE_ARENAS.find(function (item) { return item.id === state.arena; });
       const isBattle = state.phase === 'battleReady' || state.phase === 'battle';
@@ -581,6 +724,10 @@
         }
         rivalImage.style.setProperty('--sprite-scale', String(BATTLE_SPRITE_SCALE[state.rival.id] || 0.78));
         rivalImage.alt = state.rival.name;
+        prepareBattleAssets(state.monster,state.rival,false);
+      } else {
+        document.getElementById('battle-loading').hidden = true;
+        if (state.phase !== 'battleReady' && state.phase !== 'battle') activeBattleAssetKey = '';
       }
       document.getElementById('monster-stage').dataset.room = isBattle ? (arena ? arena.id : 'meadow') : (state.phase === 'training' ? 'gym' : room.id);
       document.getElementById('room-label').textContent = isBattle ? (arena ? arena.name : 'Battle Arena') : (state.phase === 'training' ? 'TRAINING GYM' : room.name);
@@ -689,13 +836,14 @@
       const log = battle.log || [];
       document.getElementById('battle-log').innerHTML = log.slice(-5).map(function (line) { return '<div>' + escapeHtml(line) + '</div>'; }).join('');
       document.getElementById('turn-label').textContent = combatBusy ? state.rival.name + ' is choosing a move…' : 'Your turn · pick an attack';
+      const assetsReady = battleAssetsReady.has(battleAssetKeyFor(state.monster,state.rival));
       document.getElementById('move-controls').innerHTML = (state.monster.moves || []).map(function (move, index) {
         const element = move.element || state.monster.element;
         const effect = elementEffectiveness(element, state.rival.element);
         const hit = Math.max(1,Math.min(98,move.accuracy + (state.monster.stats.speed - 6) * 3));
         const effectText = move.guard ? ' · Guard +' + move.guard : (effect > 1 ? ' · Super effective' : (effect < 1 ? ' · Resisted' : ''));
         const moveInfo = move.guard ? escapeHtml(element) + effectText + ' · ' + hit + '% hit' : escapeHtml(element) + ' · Power ' + move.power + ' · ' + hit + '% hit' + effectText;
-        return '<button class="move-button" type="button" data-move="' + index + '" ' + (combatBusy || battle.ended ? 'disabled' : '') + '><span class="move-name">' + escapeHtml(move.name) + '</span><span class="move-meta">' + moveInfo + '</span></button>';
+        return '<button class="move-button" type="button" data-move="' + index + '" ' + (combatBusy || battle.ended || !assetsReady ? 'disabled' : '') + '><span class="move-name">' + escapeHtml(move.name) + '</span><span class="move-meta">' + moveInfo + '</span></button>';
       }).join('');
       document.querySelectorAll('.move-button').forEach(function (button) {
         button.addEventListener('click', function () { playerAttack(Number(button.dataset.move)); });
@@ -729,6 +877,25 @@
       renderElementChart();
       renderLeaderboard();
       renderResult();
+      const isWelcome = state.phase === 'start' || !state.welcomeSeen;
+      document.getElementById('game-start').hidden = !isWelcome;
+      document.querySelector('.game-hero').hidden = isWelcome;
+      document.getElementById('game-layout').hidden = isWelcome;
+      document.querySelector('.game-footer').hidden = isWelcome;
+      const pendingEgg = MONSTERS.find(function (monster) { return monster.id === state.pendingMonsterId; }) || null;
+      const introArt = document.getElementById('start-egg-art');
+      const introStatus = document.querySelector('.egg-status');
+      if (state.monster) {
+        introArt.innerHTML = '<img src="' + monsterPreviewPath(state.monster) + '" alt="' + escapeHtml(state.monster.name) + '">';
+        introStatus.textContent = 'Your saved monster';
+        document.getElementById('start-egg-caption').textContent = state.monster.name + ' · Level ' + state.level + ' · Your saved run is ready to continue.';
+        document.getElementById('start-game-button').innerHTML = 'Continue your run <span aria-hidden="true">→</span>';
+      } else {
+        introArt.innerHTML = eggArt(pendingEgg);
+        introStatus.textContent = 'A mystery egg awaits';
+        document.getElementById('start-egg-caption').textContent = pendingEgg && pendingEgg.rare ? 'A rare crystal-marked egg. Its creature is still a secret.' : 'Its creature and element are revealed when it hatches.';
+        document.getElementById('start-game-button').innerHTML = state.phase === 'start' ? 'Enter the hatchery <span aria-hidden="true">→</span>' : 'Continue to your egg <span aria-hidden="true">→</span>';
+      }
       document.getElementById('current-level').textContent = String(state.level);
       document.getElementById('monster-kind').textContent = state.monster ? state.monster.kind : 'Waiting to hatch';
       document.getElementById('monster-name').textContent = state.monster ? state.monster.name : 'A little egg';
@@ -747,7 +914,7 @@
       trainControls.hidden = state.phase !== 'training';
       hatchButton.hidden = state.phase !== 'egg';
       hatchButton.textContent = state.previousMonsterId ? 'Hatch a new monster' : 'Hatch your first egg';
-      battleButton.disabled = false;
+      battleButton.disabled = state.phase === 'battleReady' && !battleAssetsReady.has(battleAssetKeyFor(state.monster,state.rival));
       if (state.phase === 'egg') {
         phaseTitle.textContent = state.previousMonsterId ? 'A new egg is waiting' : 'Ready when you are';
         phaseCopy.textContent = state.previousMonsterId ? 'Your last monster has fallen. Hatch a different monster to begin again at Level 0.' : 'Hatch your first egg to begin a run. A new monster starts at Level 0.';
@@ -787,12 +954,21 @@
       state.scores.sort(function (a, b) { return (Number(b.level) - Number(a.level)) || (Number(b.when) - Number(a.when)); });
       state.scores = state.scores.slice(0, 10);
     }
+    function beginGame() {
+      state.welcomeSeen = true;
+      if (state.phase === 'start') state.phase = 'egg';
+      state.result = null;
+      saveState();
+      render();
+    }
     function hatchEgg() {
       window.clearTimeout(rivalTurnTimer);
       rivalTurnTimer = 0;
       combatBusy = false;
-      const selected = pickMonster(state.previousMonsterId);
+      let selected = MONSTERS.find(function (monster) { return monster.id === state.pendingMonsterId; });
+      if (!selected || selected.id === state.previousMonsterId) selected = pickMonster(state.previousMonsterId);
       state.monster = Object.assign({}, selected, { stats: Object.assign({}, selected.stats) });
+      state.pendingMonsterId = '';
       state.level = 0;
       state.trainingCount = 0;
       state.phase = 'training';
@@ -886,6 +1062,7 @@
         const lostMonster = state.monster.name;
         const lostAt = state.level;
         state.previousMonsterId = state.monster.id;
+        state.pendingMonsterId = pickMonster(state.previousMonsterId).id;
         state.monster = null;
         state.level = 0;
         state.trainingCount = 0;
@@ -972,6 +1149,12 @@
       scheduleRivalAttack(650);
     }
     document.getElementById('hatch-button').addEventListener('click', hatchEgg);
+    document.getElementById('start-game-button').addEventListener('click', beginGame);
+    document.getElementById('retry-battle-assets').addEventListener('click', function () {
+      if (!state.monster || !state.rival) return;
+      activeBattleAssetKey = '';
+      prepareBattleAssets(state.monster,state.rival,true);
+    });
     document.querySelectorAll('.train-button').forEach(function (button) {
       button.addEventListener('click', function () { trainStat(button.dataset.stat); });
     });
@@ -984,6 +1167,6 @@
     render();
     if (state.phase === 'battle' && state.battle && state.battle.pendingRival) scheduleRivalAttack(500);
   </script>
-  <script src="scripts/monster-sprites.js?v=20261107-3"></script>
+  <script src="scripts/monster-sprites.js?v=20261107-4"></script>
 </body>
 </html>

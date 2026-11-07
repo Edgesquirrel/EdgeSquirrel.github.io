@@ -17,10 +17,11 @@
 
   function pathFor(monster, animation, frame) {
     const safeFrame = String(frame).padStart(2, '0');
-    return '/' + safeId(monster) + '/' + animation + '/frame-' + safeFrame + '.png';
+    return '/' + safeId(monster) + '/' + animation + '/frame-' + safeFrame + '.png?v=20261107-3';
   }
 
-  function loadFrame(path) {
+  function loadFrame(path, retry) {
+    if (retry) frameLoads.delete(path);
     if (!frameLoads.has(path)) {
       frameLoads.set(path, new Promise(function (resolve) {
         const preload = new Image();
@@ -32,17 +33,32 @@
     return frameLoads.get(path);
   }
 
-  function warmAnimation(monster, animation, count) {
-    if (!monster) return;
+  function warmAnimation(monster, animation, count, retry) {
+    if (!monster) return Promise.resolve(true);
+    const requests = [];
     for (let frame = 1; frame <= count; frame += 1) {
-      loadFrame(pathFor(monster, animation, frame));
+      requests.push(loadFrame(pathFor(monster, animation, frame),retry));
     }
+    return Promise.all(requests).then(function (results) { return results.every(Boolean); });
+  }
+
+  function warmBattle(player, rival, retry) {
+    const requests = [];
+    [player,rival].forEach(function (monster) {
+      requests.push(warmAnimation(monster,'idle',IDLE_FRAMES,retry));
+      requests.push(warmAnimation(monster,'attack',ATTACK_FRAMES,retry));
+    });
+    return Promise.all(requests).then(function (results) { return results.every(Boolean); });
   }
 
   function warmSnapshot() {
     if (!snapshot) return;
-    warmAnimation(snapshot.monster, 'idle', IDLE_FRAMES);
-    warmAnimation(snapshot.rival, 'idle', IDLE_FRAMES);
+    if ((snapshot.phase === 'battleReady' || snapshot.phase === 'battle') && snapshot.rival) {
+      warmBattle(snapshot.monster,snapshot.rival,false);
+    } else {
+      warmAnimation(snapshot.monster,'idle',IDLE_FRAMES,false);
+      if (snapshot.phase === 'training') warmAnimation(snapshot.monster,'attack',ATTACK_FRAMES,false);
+    }
   }
 
   function setFrame(image, monster, animation, frame) {
@@ -101,6 +117,7 @@
     snapshot = nextSnapshot || null;
     warmSnapshot();
   };
+  window.monsterSpritesWarmBattle = warmBattle;
   window.monsterSpritesAttack = function (side) {
     if (side === 'player' || side === 'rival') {
       attacks[side] = performance.now();
