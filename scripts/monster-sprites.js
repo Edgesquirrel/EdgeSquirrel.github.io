@@ -4,7 +4,7 @@
   const IDLE_FRAMES = 4;
   const ATTACK_FRAMES = 6;
   const IDLE_FRAME_MS = 160;
-  const ATTACK_FRAME_MS = 95;
+  const ATTACK_FRAME_MS = 150;
   const ATTACK_DURATION = ATTACK_FRAMES * ATTACK_FRAME_MS;
   const attacks = { player:0, rival:0 };
   const frameLoads = new Map();
@@ -119,11 +119,12 @@
   };
   window.monsterSpritesWarmBattle = warmBattle;
   window.monsterSpritesAttack = function (side) {
-    if (side === 'player' || side === 'rival') {
+    if (side !== 'player' && side !== 'rival') return Promise.resolve();
+    const monster = snapshot && (side === 'player' ? snapshot.monster : snapshot.rival);
+    return warmAnimation(monster,'attack',ATTACK_FRAMES,false).then(function () {
       attacks[side] = performance.now();
-      const monster = snapshot && (side === 'player' ? snapshot.monster : snapshot.rival);
-      warmAnimation(monster, 'attack', ATTACK_FRAMES);
-    }
+      return new Promise(function (resolve) { window.setTimeout(resolve,ATTACK_DURATION); });
+    });
   };
 
   warmSnapshot();

@@ -194,10 +194,14 @@
     .battle-fighter-spot.rival-spot { right:1%; }
     .battle-fighter-spot img { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 16px 13px rgba(0,0,0,.48)); transform:scale(var(--sprite-scale,.8)); transform-origin:center bottom; transition:filter .18s ease; }
     .battle-fighter-spot.rival-spot img { transform:scaleX(-1) scale(var(--sprite-scale,.8)); }
-    .battle-fighter-spot img.attacking-player { animation:fallbackPlayerLunge .52s cubic-bezier(.2,.8,.2,1); }
-    .battle-fighter-spot img.attacking-rival { animation:fallbackRivalLunge .52s cubic-bezier(.2,.8,.2,1); }
-    @keyframes fallbackPlayerLunge { 45%{transform:translateX(22px) scale(var(--sprite-scale,.8))} }
-    @keyframes fallbackRivalLunge { 45%{transform:translateX(-22px) scaleX(-1) scale(var(--sprite-scale,.8))} }
+    .battle-fighter-spot img.attacking-player { animation:fallbackPlayerLunge .9s cubic-bezier(.2,.8,.2,1); }
+    .battle-fighter-spot img.attacking-rival { animation:fallbackRivalLunge .9s cubic-bezier(.2,.8,.2,1); }
+    .battle-fighter-spot img.taking-hit-player { animation:fallbackPlayerHit .34s ease-out; }
+    .battle-fighter-spot img.taking-hit-rival { animation:fallbackRivalHit .34s ease-out; }
+    @keyframes fallbackPlayerLunge { 0%,100%{transform:scale(var(--sprite-scale,.8))} 23%{transform:translateX(5px) scale(var(--sprite-scale,.8))} 47%{transform:translateX(27px) scale(var(--sprite-scale,.8))} 59%{transform:translateX(20px) scale(var(--sprite-scale,.8))} 78%{transform:translateX(3px) scale(var(--sprite-scale,.8))} }
+    @keyframes fallbackRivalLunge { 0%,100%{transform:scaleX(-1) scale(var(--sprite-scale,.8))} 23%{transform:translateX(-5px) scaleX(-1) scale(var(--sprite-scale,.8))} 47%{transform:translateX(-27px) scaleX(-1) scale(var(--sprite-scale,.8))} 59%{transform:translateX(-20px) scaleX(-1) scale(var(--sprite-scale,.8))} 78%{transform:translateX(-3px) scaleX(-1) scale(var(--sprite-scale,.8))} }
+    @keyframes fallbackPlayerHit { 25%{transform:translateX(-7px) scale(var(--sprite-scale,.8));filter:brightness(1.8)} 60%{transform:translateX(4px) scale(var(--sprite-scale,.8))} }
+    @keyframes fallbackRivalHit { 25%{transform:translateX(7px) scaleX(-1) scale(var(--sprite-scale,.8));filter:brightness(1.8)} 60%{transform:translateX(-4px) scaleX(-1) scale(var(--sprite-scale,.8))} }
     .stage-hud { position:absolute; z-index:3; inset:12px 12px auto; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:9px; pointer-events:none; }
     .stage-fighter { min-width:0; padding:9px 11px; border:1px solid rgba(255,255,255,.15); border-radius:12px; background:rgba(8,8,14,.82); backdrop-filter:blur(9px); }
     .stage-fighter.enemy { justify-self:end; width:min(100%,250px); }
@@ -1027,13 +1031,35 @@
     }
     function animateFallbackAttack(side) {
       const fallback = document.getElementById(side === 'player' ? 'player-model-fallback' : 'rival-model-fallback');
-      if (!fallback || fallback.closest('[hidden]')) return;
-      if (window.monsterSpritesAttack) window.monsterSpritesAttack(side);
+      if (!fallback || fallback.closest('[hidden]')) return Promise.resolve();
       const className = side === 'player' ? 'attacking-player' : 'attacking-rival';
       fallback.classList.remove(className);
       void fallback.offsetWidth;
       fallback.classList.add(className);
       fallback.addEventListener('animationend',function () { fallback.classList.remove(className); },{once:true});
+      const spriteAnimation = window.monsterSpritesAttack ? window.monsterSpritesAttack(side) : null;
+      return spriteAnimation && typeof spriteAnimation.then === 'function' ? spriteAnimation : new Promise(function (resolve) { window.setTimeout(resolve,900); });
+    }
+    function animateFallbackHit(side) {
+      const fallback = document.getElementById(side === 'player' ? 'player-model-fallback' : 'rival-model-fallback');
+      if (!fallback) return Promise.resolve();
+      const className = side === 'player' ? 'taking-hit-player' : 'taking-hit-rival';
+      fallback.classList.remove(className);
+      void fallback.offsetWidth;
+      fallback.classList.add(className);
+      return new Promise(function (resolve) {
+        let done = false;
+        let timer = 0;
+        function finish() {
+          if (done) return;
+          done = true;
+          window.clearTimeout(timer);
+          fallback.classList.remove(className);
+          resolve();
+        }
+        fallback.addEventListener('animationend',finish,{once:true});
+        timer = window.setTimeout(finish,420);
+      });
     }
     function damageForMove(move, attacker, defender, guard) {
       const rawDamage = Math.max(2, move.power + Math.floor(attackPower(attacker) * .55) + randomInt(-2,2) - Number(defender.stats.defense || 0) - (guard || 0));
@@ -1077,13 +1103,14 @@
       saveState();
       render();
     }
-    function rivalAttack() {
+    async function rivalAttack() {
       if (state.phase !== 'battle' || !state.battle || !state.monster || !state.rival || !state.battle.pendingRival) { combatBusy = false; return; }
       const moves = (state.rival.moves || []).filter(function (move) { return !move.guard; });
       const availableMoves = moves.length ? moves : (state.rival.moves || []);
       const move = availableMoves.length ? availableMoves[randomInt(0, availableMoves.length - 1)] : { name:'Quick Strike', power:6, accuracy:85 };
-      state.battle.pendingRival = false;
-      animateFallbackAttack('rival');
+      document.getElementById('turn-label').textContent = state.rival.name + ' is winding up an attack…';
+      await animateFallbackAttack('rival');
+      if (state.phase !== 'battle' || !state.battle || !state.monster || !state.rival) { combatBusy = false; return; }
       const hitChance = Math.max(55, Math.min(98, move.accuracy + (state.rival.stats.speed - 6) * 3));
       if (randomInt(1,100) > hitChance) {
         addBattleLog(state.rival.name + ' used ' + move.name + ', but ' + state.monster.name + ' dodged it!');
@@ -1091,6 +1118,8 @@
         state.battle.rivalGuard += move.guard;
         addBattleLog(state.rival.name + ' used ' + move.name + ' and raised a guard.');
       } else {
+        await animateFallbackHit('player');
+        if (state.phase !== 'battle' || !state.battle || !state.monster || !state.rival) { combatBusy = false; return; }
         const blocked = state.battle.playerGuard || 0;
         const result = damageForMove(move, state.rival, state.monster, blocked);
         const damage = result.damage;
@@ -1098,7 +1127,8 @@
         state.battle.playerHp = Math.max(0, state.battle.playerHp - damage);
         addBattleLog(state.rival.name + ' used ' + move.name + ' (' + result.element + ') for ' + damage + ' damage.' + (result.multiplier > 1 ? ' Super effective!' : (result.multiplier < 1 ? ' Your element resisted it.' : '')));
       }
-      if (state.battle.playerHp <= 0) { saveState(); finishBattle(false); return; }
+      if (state.battle.playerHp <= 0) { state.battle.pendingRival = false; saveState(); finishBattle(false); return; }
+      state.battle.pendingRival = false;
       combatBusy = false;
       saveState();
       render();
@@ -1106,10 +1136,10 @@
     function scheduleRivalAttack(delay) {
       window.clearTimeout(rivalTurnTimer);
       combatBusy = true;
-      rivalTurnTimer = window.setTimeout(function () {
+      rivalTurnTimer = window.setTimeout(async function () {
         rivalTurnTimer = 0;
         try {
-          rivalAttack();
+          await rivalAttack();
         } catch (error) {
           console.error('Rival turn failed:',error);
           if (state.battle && !state.battle.ended) {
@@ -1122,13 +1152,15 @@
         }
       },delay);
     }
-    function playerAttack(index) {
+    async function playerAttack(index) {
       if (state.phase !== 'battle' || !state.battle || state.battle.ended || combatBusy) return;
       const move = (state.monster.moves || [])[index];
       if (!move) return;
       combatBusy = true;
-      state.battle.pendingRival = true;
-      animateFallbackAttack('player');
+      renderBattle();
+      document.getElementById('turn-label').textContent = state.monster.name + ' is winding up an attack…';
+      await animateFallbackAttack('player');
+      if (state.phase !== 'battle' || !state.battle || state.battle.ended || !state.monster || !state.rival) { combatBusy = false; return; }
       const hitChance = Math.max(55, Math.min(98, move.accuracy + (state.monster.stats.speed - 6) * 3));
       if (randomInt(1,100) > hitChance) {
         addBattleLog(state.monster.name + ' used ' + move.name + ', but ' + state.rival.name + ' dodged it!');
@@ -1136,6 +1168,8 @@
         state.battle.playerGuard += move.guard;
         addBattleLog(state.monster.name + ' used ' + move.name + ' and raised a guard.');
       } else {
+        await animateFallbackHit('rival');
+        if (state.phase !== 'battle' || !state.battle || state.battle.ended || !state.monster || !state.rival) { combatBusy = false; return; }
         const blocked = state.battle.rivalGuard || 0;
         const result = damageForMove(move, state.monster, state.rival, blocked);
         const damage = result.damage;
@@ -1143,7 +1177,8 @@
         state.battle.rivalHp = Math.max(0, state.battle.rivalHp - damage);
         addBattleLog(state.monster.name + ' used ' + move.name + ' (' + result.element + ') for ' + damage + ' damage.' + (result.multiplier > 1 ? ' Super effective!' : (result.multiplier < 1 ? ' Not very effective.' : '')));
       }
-      if (state.battle.rivalHp <= 0) { saveState(); finishBattle(true); return; }
+      if (state.battle.rivalHp <= 0) { state.battle.pendingRival = false; saveState(); finishBattle(true); return; }
+      state.battle.pendingRival = true;
       saveState();
       render();
       scheduleRivalAttack(650);
@@ -1167,6 +1202,6 @@
     render();
     if (state.phase === 'battle' && state.battle && state.battle.pendingRival) scheduleRivalAttack(500);
   </script>
-  <script src="scripts/monster-sprites.js?v=20261107-4"></script>
+  <script src="scripts/monster-sprites.js?v=20261107-5"></script>
 </body>
 </html>
