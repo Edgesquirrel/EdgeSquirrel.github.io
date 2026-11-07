@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0b12">
-  <meta name="description" content="Hatch and train an elemental low-poly 3D monster, then guide it through a turn-based arena battle.">
+  <meta name="description" content="Hatch and train a realistic 3D elemental creature, then guide it through a turn-based arena battle.">
   <title>Hatch &amp; Battle | EdgeSquirrel</title>
   <style>
     :root {
@@ -150,10 +150,15 @@
     .monster-view { display:contents; }
     .monster-art canvas { position:relative; z-index:1; display:block; width:100%; height:210px; }
     .monster-art .art-fallback { position:relative; z-index:1; }
+    .monster-art .art-fallback img { display:block; width:min(100%,240px); height:190px; object-fit:contain; filter:drop-shadow(0 15px 18px rgba(0,0,0,.45)); }
     .monster-stage.battle-active { display:block; min-height:0; padding:12px; }
     .stage-battle { display:block; width:100%; margin:0; padding:0; border:0; background:transparent; }
     .stage-scene { position:relative; min-height:330px; overflow:hidden; border:1px solid rgba(168,139,255,.22); border-radius:16px; background:radial-gradient(ellipse at 50% 25%,rgba(112,75,202,.18),transparent 58%),linear-gradient(180deg,#14131e,#0b0b12); }
     .stage-scene canvas { display:block; width:100%; height:330px; }
+    .battle-model-fallback { position:absolute; z-index:1; inset:45px 10px 12px; display:grid; grid-template-columns:1fr 1fr; align-items:end; pointer-events:none; }
+    .battle-model-fallback[hidden] { display:none; }
+    .battle-model-fallback img { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 15px 18px rgba(0,0,0,.52)); }
+    .battle-model-fallback img:last-child { transform:scaleX(-1); }
     .stage-hud { position:absolute; z-index:3; inset:12px 12px auto; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:9px; pointer-events:none; }
     .stage-fighter { min-width:0; padding:9px 11px; border:1px solid rgba(255,255,255,.15); border-radius:12px; background:rgba(8,8,14,.82); backdrop-filter:blur(9px); }
     .stage-fighter.enemy { justify-self:end; width:min(100%,250px); }
@@ -283,7 +288,7 @@
       <div>
         <p class="eyebrow">A little monster-training game</p>
         <h1>Hatch. Train.<br><span>Battle.</span></h1>
-        <p class="hero-copy">Hatch an elemental low-poly 3D creature, train any stat your way, then guide it through a turn-based arena battle. Keep winning to climb levels and set your best run.</p>
+        <p class="hero-copy">Hatch a detailed 3D creature, train any stat your way, then guide it through a turn-based arena battle. Keep winning to climb levels and set your best run.</p>
       </div>
       <div class="hero-note"><strong>One run = four in-game weeks.</strong><br>No real-world waiting. Choose any stat each of the first three weeks, then command your attacks in Week 4.</div>
     </section>
@@ -316,7 +321,8 @@
           <section class="battle-screen stage-battle" id="battle-screen" aria-label="Battle arena" hidden>
             <div class="stage-scene">
               <canvas id="battle-canvas" aria-label="Animated three dimensional monster battle"></canvas>
-              <div class="three-warning" id="three-warning" hidden>3D display needs a WebGL browser and an internet connection. Your game progress and battle controls still work.</div>
+              <div class="battle-model-fallback" id="battle-art-fallback" hidden aria-hidden="true"><img id="player-model-fallback" alt=""><img id="rival-model-fallback" alt=""></div>
+              <div class="three-warning" id="three-warning" hidden>3D display unavailable. Your game progress and battle controls still work.</div>
               <div class="effect-flash" id="effect-flash"></div>
               <div class="stage-hud">
                 <div class="stage-fighter player"><div class="fighter-heading"><span id="player-combat-name">Your monster</span><span>YOU</span></div><div class="fighter-type" id="player-element-name">Element</div><div class="fighter-hp-text"><span>Health</span><strong id="player-hp-label">0 / 0</strong></div><div class="hp-track"><div class="hp-fill" id="player-hp-fill"></div></div></div>
@@ -376,7 +382,7 @@
         <section class="card side-card">
           <h2 class="side-title">How to play</h2>
           <ol class="rules-list">
-            <li><span class="rule-number">1</span><span>Hatch an egg to meet a random original monster with its own starting stats.</span></li>
+            <li><span class="rule-number">1</span><span>Hatch an egg to meet a detailed 3D creature with its own look and starting stats.</span></li>
             <li><span class="rule-number">2</span><span>In Weeks 1–3, choose any stat each time, including the same stat repeatedly. Strength adds attack and health, Defense reduces damage, and Speed improves accuracy.</span></li>
             <li><span class="rule-number">3</span><span>In Week 4, choose attacks during a turn-based fight. Element matchups can make a move stronger or weaker.</span></li>
             <li><span class="rule-number">4</span><span>A win adds a level and starts another three-week training cycle. A loss brings a new Level 0 egg.</span></li>
@@ -506,14 +512,34 @@
       const shape = monster.shape || artByType[monster.archetype] || artByType.dragon;
       return '<svg viewBox="0 0 200 170" role="img" aria-label="' + escapeHtml(monster.name) + ' illustration" style="color:' + monster.color + '"><ellipse cx="100" cy="150" rx="52" ry="8" fill="#08080e" opacity=".45"/><circle cx="100" cy="88" r="69" fill="' + monster.color + '" opacity=".09"/><g>' + shape + '</g><ellipse cx="84" cy="94" rx="5" ry="7" fill="#211b31"/><ellipse cx="116" cy="94" rx="5" ry="7" fill="#211b31"/><circle cx="85" cy="92" r="1.6" fill="#fff"/><circle cx="117" cy="92" r="1.6" fill="#fff"/><path d="M94 108c4 4 8 4 12 0" fill="none" stroke="#342541" stroke-width="3" stroke-linecap="round"/><path d="M62 91c5-3 11-3 16-1m44 0c5-2 11-2 16 1" fill="none" stroke="' + monster.light + '" stroke-width="2" stroke-linecap="round" opacity=".8"/>' + (monster.rare ? '<path d="m151 42 4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1Z" fill="#fff0ff" opacity=".95"/><circle cx="55" cy="55" r="3" fill="#e8c4ff"/><circle cx="151" cy="91" r="2.5" fill="#fff"/>' : '') + '</svg>';
     }
+    function monsterPreviewPath(monster) {
+      if (!monster) return '';
+      if (monster.rare && monster.archetype === 'squirrel') return 'assets/monsters/previews/crystal-squirrel.png';
+      const safeArchetypes = ['dragon','wolf','raptor','golem','squirrel','lion','ghost','serpent','bird'];
+      const archetype = safeArchetypes.includes(monster.archetype) ? monster.archetype : 'dragon';
+      return 'assets/monsters/previews/' + archetype + '.png';
+    }
     function renderArt() {
       const fallback = document.getElementById('art-fallback');
-      fallback.innerHTML = monsterArt(state.monster);
+      const previewPath = monsterPreviewPath(state.monster);
+      fallback.innerHTML = previewPath ? '<img src="' + previewPath + '" alt="' + escapeHtml(state.monster.name) + ' 3D model">' : monsterArt(null);
+      const fallbackImage = fallback.querySelector('img');
+      if (fallbackImage) fallbackImage.addEventListener('error', function () { fallback.innerHTML = monsterArt(state.monster); });
       fallback.hidden = false;
       document.getElementById('monster-art').setAttribute('aria-label', state.monster ? state.monster.name + ' preview' : 'Mysterious egg preview');
       const room = ROOMS.find(function (item) { return item.id === state.room; }) || ROOMS[0];
       const arena = BATTLE_ARENAS.find(function (item) { return item.id === state.arena; });
       const isBattle = state.phase === 'battleReady' || state.phase === 'battle';
+      const battleFallback = document.getElementById('battle-art-fallback');
+      battleFallback.hidden = !isBattle;
+      if (isBattle && state.monster && state.rival) {
+        const playerImage = document.getElementById('player-model-fallback');
+        const rivalImage = document.getElementById('rival-model-fallback');
+        playerImage.src = monsterPreviewPath(state.monster);
+        playerImage.alt = state.monster.name;
+        rivalImage.src = monsterPreviewPath(state.rival);
+        rivalImage.alt = state.rival.name;
+      }
       document.getElementById('monster-stage').dataset.room = isBattle ? (arena ? arena.id : 'meadow') : (state.phase === 'training' ? 'gym' : room.id);
       document.getElementById('room-label').textContent = isBattle ? (arena ? arena.name : 'Battle Arena') : (state.phase === 'training' ? 'TRAINING GYM' : room.name);
     }

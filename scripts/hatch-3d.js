@@ -1,15 +1,43 @@
 (function () {
-  const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js';
+  const THREE_URL = './scripts/vendor/three.module.js';
+  const GLTF_LOADER_URL = './scripts/vendor/addons/loaders/GLTFLoader.js';
+  const DRACO_LOADER_URL = './scripts/vendor/addons/loaders/DRACOLoader.js';
+  const CREATURE_MODELS = {
+    dragon:'assets/monsters/dragon.glb', wolf:'assets/monsters/wolf.glb',
+    raptor:'assets/monsters/dinosaur.glb', golem:'assets/monsters/golem.glb',
+    squirrel:'assets/monsters/squirrel.glb', lion:'assets/monsters/lion.glb',
+    'squirrel-rare':'assets/monsters/crystal-squirrel.glb',
+    ghost:'assets/monsters/ghost.glb', serpent:'assets/monsters/snake.glb',
+    bird:'assets/monsters/bird.glb'
+  };
 
-  import(THREE_URL).then(function (THREE) {
-    const preview = makeStage(THREE, document.getElementById('monster-canvas'), false);
-    const battle = makeStage(THREE, document.getElementById('battle-canvas'), true);
+  Promise.all([import(THREE_URL),import(GLTF_LOADER_URL),import(DRACO_LOADER_URL)]).then(function (modules) {
+    const THREE = modules[0];
+    const GLTFLoader = modules[1].GLTFLoader;
+    const DRACOLoader = modules[2].DRACOLoader;
+    const gltfLoader = new GLTFLoader();
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('./scripts/vendor/draco/');
+    gltfLoader.setDRACOLoader(dracoLoader);
+    const cachedAssets = new Map();
+    const pendingAssets = new Map();
+    function loadCreature(archetype) {
+      if (cachedAssets.has(archetype)) return Promise.resolve(cachedAssets.get(archetype));
+      if (pendingAssets.has(archetype)) return pendingAssets.get(archetype);
+      const path = CREATURE_MODELS[archetype] || CREATURE_MODELS.dragon;
+      const request = gltfLoader.loadAsync(path).then(function (gltf) {
+        cachedAssets.set(archetype,gltf.scene);
+        return gltf.scene;
+      }).finally(function () { pendingAssets.delete(archetype); });
+      pendingAssets.set(archetype,request);
+      return request;
+    }
+    const preview = makeStage(THREE,document.getElementById('monster-canvas'),false,loadCreature);
+    const battle = makeStage(THREE,document.getElementById('battle-canvas'),true,loadCreature);
 
     window.hatch3dSetState = function (snapshot) {
       preview.setState(snapshot);
       battle.setState(snapshot);
-      document.getElementById('art-fallback').hidden = true;
-      document.getElementById('three-warning').hidden = true;
     };
     window.hatch3dAttack = function (side) {
       battle.attack(side);
@@ -21,10 +49,11 @@
     if (window.hatch3dSnapshot) window.hatch3dSetState(window.hatch3dSnapshot);
   }).catch(function () {
     document.getElementById('art-fallback').hidden = false;
+    document.getElementById('three-warning').textContent = 'The 3D display could not start in this browser. Your game progress and controls still work.';
     document.getElementById('three-warning').hidden = false;
   });
 
-  function makeStage(THREE, canvas, isBattle) {
+  function makeStage(THREE, canvas, isBattle, loadCreature) {
     if (!canvas) return { setState:function () {}, attack:function () {} };
     const renderer = new THREE.WebGLRenderer({ canvas:canvas, alpha:true, antialias:true, powerPreference:'low-power' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
@@ -82,164 +111,50 @@
 
     const environmentColors = {
       crystal:{ bg:'#171126',floor:'#201a30',rim:'#a884ff',light:'#8b68ff' },
-      'crystal-arena':{ bg:'#171126',floor:'#201a30',rim:'#a884ff',light:'#8b68ff' },
       ember:{ bg:'#211411',floor:'#2b1b19',rim:'#ed8259',light:'#e8663f' },
       moon:{ bg:'#10172a',floor:'#171e32',rim:'#698be2',light:'#5579e8' },
       moss:{ bg:'#111d17',floor:'#19291f',rim:'#71ca91',light:'#56ad70' },
-      gym:{ bg:'#211b1a',floor:'#302725',rim:'#dfa96a',light:'#b97542' },
-      meadow:{ bg:'#14251c',floor:'#243627',rim:'#9bd479',light:'#70b56e' },
-      volcano:{ bg:'#2b1718',floor:'#38201b',rim:'#ff8a58',light:'#ff633f' },
-      ice:{ bg:'#14222f',floor:'#263846',rim:'#a4eaff',light:'#68b8df' },
-      forest:{ bg:'#142018',floor:'#202b22',rim:'#8fc28a',light:'#4f9364' },
-      coast:{ bg:'#14252e',floor:'#26363a',rim:'#7ce5ee',light:'#47aebb' }
+      gym:{ bg:'#171521',floor:'#211d29',rim:'#b69aff',light:'#9274dd' }
     };
-    let environmentGroup = null;
-    let environmentKey = '';
-    function clearEnvironment() {
-      if (!environmentGroup) return;
-      scene.remove(environmentGroup);
-      environmentGroup.traverse(function (item) {
-        if (item.geometry) item.geometry.dispose();
-        if (item.material) {
-          if (Array.isArray(item.material)) item.material.forEach(function (entry) { entry.dispose(); });
-          else item.material.dispose();
-        }
-      });
-      environmentGroup = null;
-    }
-    function setEnvironment(environmentId, trainingFocus) {
-      const nextKey = (environmentId || 'crystal') + ':' + (trainingFocus || '');
-      if (environmentKey === nextKey) return;
-      environmentKey = nextKey;
-      clearEnvironment();
-      const kind = environmentId || 'crystal';
-      const colors = environmentColors[kind] || environmentColors.crystal;
-      scene.background = new THREE.Color(colors.bg);
-      scene.fog = new THREE.Fog(colors.bg,14,30);
+    const environmentPalette = { meadow:'moss',volcano:'ember',ice:'moon',forest:'moss',coast:'moon','crystal-arena':'crystal' };
+    const stageSurface = isBattle ? canvas.parentElement : null;
+    let currentEnvironment = '';
+    function setEnvironment(environmentId) {
+      const palette = environmentPalette[environmentId] || environmentId || 'crystal';
+      if (currentEnvironment === palette) return;
+      currentEnvironment = palette;
+      const colors = environmentColors[palette] || environmentColors.crystal;
+      scene.background = null;
+      scene.fog = null;
       floor.material.color.set(colors.floor);
       outerRing.material.color.set(colors.rim);
       outerRing.material.emissive.set(colors.light);
+      centerRing.material.color.set(colors.rim);
+      centerRing.material.emissive.set(colors.light);
       rimLight.color.set(colors.light);
-      const isArena = ['meadow','volcano','ice','forest','coast','crystal-arena'].includes(kind);
-      platform.visible = !isArena && kind !== 'gym';
-      outerRing.visible = !isArena && kind !== 'gym';
-      centerRing.visible = kind === 'crystal' || kind === 'ember' || kind === 'moon' || kind === 'moss';
-      grid.visible = kind === 'crystal' || kind === 'ember' || kind === 'moon' || kind === 'moss';
-      environmentGroup = new THREE.Group();
-      scene.add(environmentGroup);
-      const g = environmentGroup;
-      function rock(x,y,z,sx,sy,sz,color,detail) {
-        return ico(g,THREE,color,x,y,z,sx,sy,sz,detail == null ? 0 : detail);
-      }
-      function tree(x,z,scale,color,haunted) {
-        const trunk = mesh(g,THREE,new THREE.CylinderGeometry(.13*scale,.22*scale,1.55*scale,5),haunted?'#292633':'#594139');
-        trunk.position.set(x,.76*scale,z);
-        trunk.rotation.z = haunted ? (x < 0 ? -.13 : .12) : 0;
-        for (let tier=0;tier<3;tier++) {
-          const crown = mesh(g,THREE,new THREE.ConeGeometry((.72-tier*.12)*scale,.9*scale,5),color);
-          crown.position.set(x,(1.32+tier*.43)*scale,z);
-        }
-      }
-      function peak(x,z,scale,color,snow) {
-        cone(g,THREE,color,x,scale*.9,z,.9*scale,1.8*scale);
-        if (snow) cone(g,THREE,snow,x,scale*1.48,z,.43*scale,.7*scale);
-      }
-      function shard(x,y,z,scale,color) {
-        const item = cone(g,THREE,color,x,y,z,.27*scale,1.55*scale,{emissive:color,emissiveIntensity:.28,metalness:.18});
-        item.rotation.z = (x < 0 ? -.12 : .12);
-      }
-
-      if (kind === 'gym') {
-        block(g,THREE,'#49352d',0,1.45,-3.45,8.8,3.1,.18);
-        block(g,THREE,'#76513d',0,2.92,-3.3,9,.12,.24);
-        for (let x=-3.5;x<=3.5;x+=1.75) block(g,THREE,'#352723',x,1.4,-3.27,.09,2.8,.16);
-        for (let x=-3.1;x<=3.1;x+=1.55) {
-          const glow = trainingFocus === 'speed' ? '#d3a1ff' : '#80604c';
-          block(g,THREE,glow,x,.035,-.7,.055,.025,4.2,{emissive:trainingFocus === 'speed' ? '#8c54b9' : '#000000',emissiveIntensity:.35});
-        }
-        const rackColor = trainingFocus === 'strength' ? '#f0c47b' : '#b6a99f';
-        for (const x of [-2.65,-1.9]) {
-          const post = mesh(g,THREE,new THREE.CylinderGeometry(.055,.055,1.42,6),rackColor,{metalness:.68,roughness:.38,emissive:trainingFocus === 'strength' ? '#87572a' : '#000000',emissiveIntensity:.28});
-          post.position.set(x,.72,-1.75);
-        }
-        const bar = mesh(g,THREE,new THREE.CylinderGeometry(.055,.055,.95,8),rackColor,{metalness:.72,roughness:.35});
-        bar.position.set(-2.27,1.25,-1.75); bar.rotation.z=Math.PI/2;
-        for (const x of [-2.68,-1.86]) {
-          const weight = mesh(g,THREE,new THREE.CylinderGeometry(.28,.28,.12,8),trainingFocus === 'strength' ? '#d49a4f' : '#6d7782',{metalness:.48});
-          weight.position.set(x,1.25,-1.75); weight.rotation.z=Math.PI/2;
-        }
-        const dummyColor = trainingFocus === 'defense' ? '#e9bf82' : '#8d6b57';
-        const dummy = mesh(g,THREE,new THREE.CylinderGeometry(.25,.32,.9,6),dummyColor,{emissive:trainingFocus === 'defense' ? '#77512e' : '#000000',emissiveIntensity:.28});
-        dummy.position.set(2.42,.92,-1.9);
-        const head = ico(g,THREE,dummyColor,2.42,1.55,-1.9,.3,.31,.27,0);
-        for (const side of [-1,1]) limb(g,THREE,dummyColor,[2.42+side*.2,1.2,-1.9],[2.42+side*.52,.87,-1.85],.09);
-        block(g,THREE,'#d2b18d',2.42,.09,-1.9,.85,.12,.6);
-        for (const x of [-3.5,3.5]) {
-          const lamp = mesh(g,THREE,new THREE.SphereGeometry(.13,8,6),trainingFocus === 'speed' ? '#d9c0ff' : '#f1c982',{emissive:trainingFocus === 'speed' ? '#8d62db' : '#9d6237',emissiveIntensity:.8});
-          lamp.position.set(x,2.42,-3.16);
-        }
-      } else if (kind === 'meadow') {
-        rock(-2.7,.05,-3.3,2.2,.75,.45,'#3e7651'); rock(2.7,.04,-3.7,2.5,.8,.5,'#4c8153');
-        tree(-3.4,-2.7,.76,'#57915d',false); tree(3.3,-3.15,.9,'#568e5a',false); tree(-1.7,-4,.58,'#669f65',false);
-        for (let i=0;i<9;i++) {
-          const flower=ico(g,THREE,i%2?'#f6d47d':'#d7b5ff',-3.5+i*.86,.13,-1.7-(i%3)*.4,.08,.13,.08,0);
-          flower.rotation.z=i*.2;
-        }
-        const sun=mesh(g,THREE,new THREE.SphereGeometry(.48,10,8),'#f4d993',{emissive:'#b47d3a',emissiveIntensity:.55}); sun.position.set(2.6,3.4,-4.5);
-      } else if (kind === 'volcano') {
-        peak(-2.5,-4.3,2.55,'#4c2824','#ff9361'); peak(2.9,-4.8,1.65,'#382322','#9a5142');
-        rock(-3,.08,-2.5,1.5,.25,.7,'#742d25'); rock(2.8,.07,-2.4,1.35,.22,.72,'#8f3829');
-        for (let i=0;i<6;i++) {
-          const lava=block(g,THREE,'#ff7549',-2.35+i*.92,.13,-1.65-(i%2)*.3,.055,.075,1.35,{emissive:'#e84124',emissiveIntensity:1.3});
-          lava.rotation.y=(i%2 ? .22 : -.18);
-        }
-        const glow = new THREE.PointLight(0xff4b26,8,9); glow.position.set(0,1.4,-2.8); g.add(glow);
-      } else if (kind === 'ice') {
-        peak(-3.1,-4.3,2.25,'#47728a','#dbf7ff'); peak(0,-4.8,2.8,'#527f97','#effcff'); peak(3,-4.1,2,'#355d79','#c5edfa');
-        shard(-2.8,.7,-2.6,1.1,'#79d9ec'); shard(2.65,.72,-2.4,1.2,'#a5ecfa');
-        rock(-3.7,.1,-1.9,.9,.28,.5,'#739db0'); rock(3.7,.1,-2,.8,.32,.55,'#557f9b');
-      } else if (kind === 'forest') {
-        for (let i=0;i<7;i++) tree(-3.7+i*1.23,-3.1-(i%2)*.55,.75+(i%3)*.12,i%2?'#34583e':'#273e35',true);
-        for (let i=0;i<5;i++) {
-          const wisp=mesh(g,THREE,new THREE.SphereGeometry(.09,7,6),i%2?'#a3f1c4':'#b1baff',{emissive:i%2?'#3aaf77':'#585fc4',emissiveIntensity:1.25,transparent:true,opacity:.8});
-          wisp.position.set(-2.7+i*1.3,.65+(i%2)*.55,-1.6-(i%3)*.35);
-        }
-        const moon=mesh(g,THREE,new THREE.SphereGeometry(.42,10,8),'#c8d5cf',{emissive:'#809c9e',emissiveIntensity:.75}); moon.position.set(2.65,3.35,-4.6);
-      } else if (kind === 'coast') {
-        for (let i=0;i<5;i++) {
-          const wave=block(g,THREE,i%2?'#397f91':'#4b9eaa',-3.2+i*1.6,.18,-3.8+(i%2)*.35,1.5,.11,.14,{emissive:'#1b5968',emissiveIntensity:.35});
-          wave.rotation.y=-.06;
-        }
-        rock(-3.45,.55,-2.7,1.25,1.05,.95,'#766b62'); rock(3.35,.62,-2.9,1.35,1.1,.92,'#5e6465');
-        rock(-3.1,1.34,-2.7,.85,.35,.8,'#879174'); rock(3.2,1.39,-2.9,.9,.34,.78,'#899479');
-        for (let i=0;i<4;i++) block(g,THREE,'#b2ecdf',-2.4+i*1.55,.22,-2.2+(i%2)*.3,.78,.035,.07,{emissive:'#3d9ba5',emissiveIntensity:.65});
-      } else if (kind === 'crystal') {
-        for (let i=0;i<9;i++) {
-          const x=-3.6+i*.9; const h=.75+(i%4)*.35;
-          shard(x,h/2,-2.65-(i%3)*.3,h,i%2?'#9476e8':'#54c6d3');
-        }
-        for (let i=0;i<5;i++) {
-          const ceiling=cone(g,THREE,i%2?'#634b91':'#437c8b',-3+i*1.5,3.35,-3.1,.4,.95,{emissive:i%2?'#634b91':'#437c8b',emissiveIntensity:.2});
-          ceiling.rotation.z=Math.PI;
-        }
-      } else {
-        for (let i=0;i<7;i++) shard(-3+i,.55+(i%3)*.18,-2.8-(i%2)*.35,.8+(i%2)*.3,i%2?'#a78bff':'#66d7db');
-        const rune=mesh(g,THREE,new THREE.TorusGeometry(.82,.035,5,16),'#d6bcff',{emissive:'#8d62db',emissiveIntensity:.75});
-        rune.position.set(0,1.35,-2.25); rune.rotation.x=.7;
-      }
+      if (stageSurface) stageSurface.style.background = 'radial-gradient(ellipse at 50% 18%,' + colors.bg + ' 0%,transparent 58%),linear-gradient(180deg,#12111c,#0b0b12 88%)';
+      platform.visible = true;
+      outerRing.visible = true;
+      centerRing.visible = true;
+      grid.visible = true;
     }
     setEnvironment('crystal');
-
     const models = { single:null, player:null, rival:null };
     let snapshot = null;
     let action = null;
     const clock = new THREE.Clock();
+    function syncBattleFallback() {
+      if (!isBattle) return;
+      const fallback = document.getElementById('battle-art-fallback');
+      if (!fallback) return;
+      fallback.hidden = !!(models.player && models.player.loaded && models.rival && models.rival.loaded);
+    }
 
     function clearModel(model) {
       if (!model) return;
       scene.remove(model.root);
       model.root.traverse(function (item) {
-        if (item.geometry) item.geometry.dispose();
+        if ((!model.sharedGeometry || item.userData.disposeGeometry) && item.geometry) item.geometry.dispose();
         if (item.material) {
           if (Array.isArray(item.material)) item.material.forEach(function (material) { material.dispose(); });
           else item.material.dispose();
@@ -249,12 +164,68 @@
     function setModel(key, creature, facing) {
       const model = models[key];
       const nextId = creature ? creature.id : 'mystery-egg';
-      if (model && model.id === nextId) return model;
+      if (model && model.id === nextId) {
+        if (!isBattle && model.loaded) {
+          document.getElementById('art-fallback').hidden = true;
+          document.getElementById('three-warning').hidden = true;
+        }
+        syncBattleFallback();
+        return model;
+      }
       clearModel(model);
-      const next = creature ? buildCreature(THREE,creature,facing) : buildEgg(THREE);
+      const next = creature ? { root:new THREE.Group(),body:new THREE.Group(),facing:facing || 1,sharedGeometry:true } : buildEgg(THREE);
       next.id = nextId;
       models[key] = next;
+      if (creature) next.root.add(next.body);
       scene.add(next.root);
+      if (creature) {
+        const assetKey = creature.archetype === 'squirrel' && creature.rare ? 'squirrel-rare' : creature.archetype;
+        loadCreature(assetKey).then(function (asset) {
+          if (models[key] !== next) return;
+          const instance = asset.clone(true);
+          const bounds = new THREE.Box3().setFromObject(instance);
+          const size = bounds.getSize(new THREE.Vector3());
+          const center = bounds.getCenter(new THREE.Vector3());
+          const scale = 2.15 / Math.max(.01,size.y,size.x * .58,size.z * .58);
+          instance.scale.setScalar(scale);
+          instance.position.set(-center.x*scale,-bounds.min.y*scale,-center.z*scale);
+          instance.traverse(function (item) {
+            if (!item.isMesh) return;
+            item.castShadow = true;
+            item.receiveShadow = true;
+            const materials = Array.isArray(item.material) ? item.material : [item.material];
+            const recolored = materials.map(function (source) {
+              const material = source.clone();
+              if (creature.archetype === 'squirrel' && creature.rare) {
+                material.onBeforeCompile = function (shader) {
+                  shader.fragmentShader = shader.fragmentShader.replace(
+                    '#include <color_fragment>',
+                    '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.31, 0.045, 0.78), 0.58);'
+                  );
+                };
+                material.customProgramCacheKey = function () { return 'edgesquirrel-crystal-squirrel'; };
+              } else if (material.color) {
+                material.color.lerp(new THREE.Color(creature.color || '#ffffff'),.12);
+              }
+              return material;
+            });
+            item.material = Array.isArray(item.material) ? recolored : recolored[0];
+          });
+          next.body.rotation.y = next.facing > 0 ? .28 : -.28;
+          next.body.add(instance);
+          if (!isBattle) document.getElementById('art-fallback').hidden = true;
+          document.getElementById('three-warning').hidden = true;
+          next.loaded = true;
+          syncBattleFallback();
+        }).catch(function () {
+          if (models[key] !== next) return;
+          const warning = document.getElementById('three-warning');
+          if (!isBattle) document.getElementById('art-fallback').hidden = false;
+          warning.textContent = 'This creature model could not load. Your game controls still work; refresh to try again.';
+          warning.hidden = false;
+          syncBattleFallback();
+        });
+      }
       return next;
     }
     function setState(nextSnapshot) {
@@ -262,7 +233,7 @@
       if (!snapshot) return;
       const fighting = snapshot.phase === 'battleReady' || snapshot.phase === 'battle';
       const stageEnvironment = isBattle ? (fighting ? (snapshot.arena === 'crystal' ? 'crystal-arena' : snapshot.arena) : snapshot.room) : (snapshot.phase === 'training' ? 'gym' : snapshot.room);
-      setEnvironment(stageEnvironment, !isBattle && snapshot.phase === 'training' ? snapshot.trainingFocus : '');
+      setEnvironment(stageEnvironment);
       if (isBattle && fighting) {
         setModel('player',snapshot.monster,1);
         setModel('rival',snapshot.rival,-1);
@@ -328,10 +299,9 @@
     function placeModel(model,x,scale,time) {
       if (!model) return;
       model.root.position.set(x,.08 + Math.sin(time * 2.5) * .06,0);
-      const facing = model.facing || 1;
-      model.root.scale.set(scale * facing,scale,scale);
+      model.root.scale.set(scale,scale,scale);
       model.root.rotation.y = Math.sin(time * 1.4) * .025;
-      model.body.rotation.z = Math.sin(time * 2.1) * .025;
+      model.body.rotation.z = Math.sin(time * 2.1) * .015;
     }
     draw();
     return {
