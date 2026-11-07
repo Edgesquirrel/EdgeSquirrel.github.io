@@ -387,11 +387,14 @@
     geometry.computeVertexNormals();
     return mesh(parent,THREE,geometry,color,Object.assign({ doubleSide:true },options || {}));
   }
-  function addEyes(root,THREE,dir,accent) {
+  function addEyes(root,THREE,headX,headY,dir,accent,size) {
+    const eyeSize = size || 1;
     for (const side of [-1,1]) {
-      const eye = ico(root,THREE,'#201a2b',dir * .72,1.62,side * .31,.075,.09,.045,1);
-      ico(root,THREE,accent,dir * .75,1.65,side * .35,.027,.03,.018,1,{emissive:accent,emissiveIntensity:.25});
+      const eye = ico(root,THREE,'#17131d',headX + dir*.12,headY+.055,side*.245,.058*eyeSize,.071*eyeSize,.036*eyeSize,1);
+      ico(root,THREE,accent,headX + dir*.145,headY+.065,side*.272,.021*eyeSize,.028*eyeSize,.014*eyeSize,1,{emissive:accent,emissiveIntensity:.55});
       eye.userData.eye = true;
+      const brow = limb(root,THREE,'#402b2b',[dir*(headX-dir*.01),headY+.17,side*.22],[dir*(headX+dir*.17),headY+.19,side*.2],.035*eyeSize);
+      brow.castShadow = false;
     }
   }
   function addElementDetails(root,THREE,monster,dir,accent) {
@@ -441,114 +444,230 @@
     const root = new THREE.Group();
     const body = new THREE.Group();
     root.add(body);
-    const dir = facing || 1;
+    // Build every creature facing right; the stage mirrors the whole model for the rival.
+    const dir = 1;
     const type = monster.archetype || 'dragon';
     const color = monster.color || '#a88bff';
     const accent = monster.light || '#e5d5ff';
     const dark = new THREE.Color(color).multiplyScalar(.58).getStyle();
-    const rock = type === 'golem';
-    if (type === 'ghost') {
-      const robe = mesh(body,THREE,new THREE.ConeGeometry(.66,1.55,7,2),color,{transparent:true,opacity:.78,emissive:color,emissiveIntensity:.16});
-      robe.position.set(-dir*.08,.88,0);
-    } else if (type === 'golem') {
-      const torso = mesh(body,THREE,new THREE.DodecahedronGeometry(.8,0),color,{metalness:monster.element === 'Metal' ? .62 : .2,roughness:.82});
-      torso.position.set(-dir*.08,1.03,0);
-      torso.scale.set(1.12,.92,.76);
-      block(body,THREE,dark,-dir*.12,1.58,0,.92,.4,.78,{metalness:monster.element === 'Metal' ? .58 : .1});
-    } else {
-      const width = type === 'serpent' ? 1.25 : (type === 'squirrel' ? .58 : .96);
-      const height = type === 'bird' ? .58 : (type === 'squirrel' ? .72 : .65);
-      const torso = mesh(body,THREE,new THREE.IcosahedronGeometry(.78,1),color,{metalness:monster.element === 'Metal' ? .48 : .08,roughness:.7});
-      torso.position.set(-dir*.08,1.06,0);
-      torso.scale.set(width,height,.68);
+    const belly = new THREE.Color(color).lerp(new THREE.Color('#f1dfbe'),.48).getStyle();
+    const eyeColor = monster.element === 'Light' ? '#fff0a7' : (monster.element === 'Dark' ? '#dd9dff' : accent);
+    const metal = monster.element === 'Metal' ? .58 : .08;
+    const x = function (distance) { return dir * distance; };
+    function orb(px,py,pz,sx,sy,sz,tint,detail,options) {
+      return ico(body,THREE,tint,x(px),py,pz,sx,sy,sz,detail == null ? 1 : detail,options);
     }
-    if (type === 'serpent') {
-      for (let i=0;i<5;i++) ico(body,THREE,i%2?dark:color,-dir*(.72-i*.3),.72+i*.18,0,.38-i*.025,.34-i*.02,.38-i*.025,1);
+    function bone(a,b,radius,tint,options) {
+      return limb(body,THREE,tint,[x(a[0]),a[1],a[2]],[x(b[0]),b[1],b[2]],radius,options);
     }
-
-    const headX = dir * (type === 'bird' ? .55 : .6);
-    const head = mesh(body,THREE,type === 'golem' ? new THREE.DodecahedronGeometry(.45,0) : new THREE.IcosahedronGeometry(.43,1),accent,{metalness:monster.element === 'Metal' ? .5 : 0});
-    head.position.set(headX,1.63,0);
-    if (type === 'squirrel') head.scale.set(.93,1.04,.9);
-    if (type === 'golem') head.scale.set(1.05,.88,.9);
-    if (type === 'bird') head.scale.set(.95,.8,.82);
-    const muzzleColor = type === 'golem' ? dark : color;
-    if (type !== 'ghost') {
-      const muzzle = ico(body,THREE,muzzleColor,headX+dir*.3,1.48,.18,.32,.2,.24,0);
-      if (type === 'bird') {
-        const beak = cone(body,THREE,'#e7b252',headX+dir*.48,1.55,.12,.17,.42,{roughness:.5});
-        beak.rotation.z = -dir * Math.PI / 2;
-      }
-      if (type === 'dragon' || type === 'wolf' || type === 'raptor' || type === 'squirrel' || type === 'lion') addEyes(body,THREE,dir,accent);
-      if (type === 'serpent') addEyes(body,THREE,dir,'#f7e77c');
-      if (type === 'golem') {
-        ico(body,THREE,'#b8f0d1',headX+dir*.08,1.65,.39,.09,.065,.04,1,{emissive:'#4bd68c',emissiveIntensity:.45});
-        ico(body,THREE,'#b8f0d1',headX-dir*.17,1.65,.39,.09,.065,.04,1,{emissive:'#4bd68c',emissiveIntensity:.45});
-      }
-      if (type === 'ghost') addEyes(body,THREE,dir,accent);
+    function claw(px,py,pz,scale,tint) {
+      const talon = cone(body,THREE,tint,x(px),py,pz,.075*scale,.28*scale);
+      talon.rotation.z = dir*Math.PI/2;
+      return talon;
     }
-
-    if (type !== 'ghost' && type !== 'serpent') {
-      const legCount = type === 'bird' ? 2 : 4;
-      const positions = type === 'bird' ? [[-.1,.38],[.32,.38]] : [[-.55,-.3],[-.55,.3],[.48,-.3],[.48,.3]];
-      for (let i=0;i<legCount;i++) {
-        const item = positions[i];
-        const top = [dir*item[0],.82,item[1]];
-        const foot = [dir * (item[0] + (item[0] > 0 ? .08 : -.05)),.12,item[1]];
-        limb(body,THREE,rock ? dark : color,top,foot,type === 'golem' ? .19 : .13,{metalness:monster.element === 'Metal' ? .5 : 0});
-        ico(body,THREE,rock?accent:dark,foot[0]+dir*.05,.12,foot[2],.22,.13,.2,0);
+    function quadrupedLegs(legColor,heavy) {
+      const pairs = [[.47,-.34],[-.55,-.32]];
+      pairs.forEach(function (pair) {
+        [-1,1].forEach(function (side) {
+          const hip = pair[0], z = side*.35, kneeX = hip + (hip > 0 ? -.1 : .14);
+          const kneeY = heavy ? .48 : .46;
+          bone([hip,.88,z],[kneeX,kneeY,z],heavy ? .23 : .17,legColor,{metalness:metal});
+          orb(kneeX,kneeY,z,heavy ? .23 : .17,heavy ? .21 : .17,.18,legColor,0);
+          bone([kneeX,kneeY,z],[hip+.04,.17,z],heavy ? .16 : .12,legColor,{metalness:metal});
+          orb(hip+.13,.14,z+.035,.25,.14,.2,legColor,0);
+          for (let toe=-1;toe<=1;toe++) claw(hip+.31,.09,z+toe*.105,heavy?1.1:.8,monster.element==='Metal'?'#d9e2e6':dark);
+        });
+      });
+    }
+    function taperedTail(points,baseColor,spines) {
+      for (let i=0;i<points.length-1;i++) {
+        const a=points[i],b=points[i+1],r=.25-i*.055;
+        bone(a,b,Math.max(.045,r),i%2?baseColor:dark);
+        orb(b[0],b[1],b[2],Math.max(.055,r*.62),Math.max(.055,r*.62),Math.max(.055,r*.62),baseColor,0);
+        if (spines && i<points.length-2) {
+          const spike=cone(body,THREE,accent,x((a[0]+b[0])*.5),Math.max(a[1],b[1])+.14,0,.1,.3);
+          spike.rotation.z=Math.PI;
+        }
       }
+    }
+    function face(headX,headY,headScale,muzzleScale,muzzleColor) {
+      const head = orb(headX,headY,0,headScale,headScale*.84,headScale*.82,color,1,{metalness:metal,roughness:.58});
+      orb(headX+dir*headScale*.61,headY-headScale*.26,.035,muzzleScale,muzzleScale*.58,muzzleScale*.65,muzzleColor || belly,0);
+      orb(headX+dir*headScale*.9,headY-headScale*.25,.04,.07,.055,.09,dark,0);
+      addEyes(body,THREE,headX+dir*headScale*.25,headY+.02,dir,eyeColor,Math.max(.72,headScale/.39));
+      return head;
     }
 
-    if (type === 'dragon' || type === 'raptor') {
-      cone(body,THREE,accent,headX-dir*.17,2.02,.12,.14,.45);
-      cone(body,THREE,accent,headX+dir*.02,2.0,-.12,.13,.39);
-      for (let side of [-1,1]) {
-        triangle(body,THREE,[[ -dir*.2,1.58,side*.34 ],[ -dir*.8,2.12,side*.76 ],[ -dir*.66,.9,side*.54 ]],dark,{transparent:true,opacity:.92});
-        if (type === 'raptor') cone(body,THREE,accent,-dir*.38,1.82,side*.15,.15,.45);
+    if (type === 'dragon') {
+      orb(-.16,1.02,0,1.02,.52,.56,color,1,{metalness,roughness:.63});
+      orb(.48,1.12,0,.5,.48,.48,color,1);
+      orb(-.66,.97,0,.48,.43,.46,dark,1);
+      orb(-.12,.84,.04,.64,.24,.47,belly,1);
+      bone([.38,1.24,0],[.77,1.53,0],.27,color);
+      const headX=.98, headY=1.59;
+      face(headX,headY,.37,.25,belly);
+      for (const side of [-1,1]) {
+        const horn=cone(body,THREE,accent,x(.77),1.93,side*.2,.14,.45,{metalness:.18}); horn.rotation.z=dir*.2;
+        bone([-.1,1.36,side*.28],[-.45,1.76,side*.91],.11,dark);
+        bone([-.45,1.76,side*.91],[-.83,2.15,side*1.34],.055,accent);
+        bone([-.45,1.76,side*.91],[-.61,1.1,side*1.24],.055,dark);
+        triangle(body,THREE,[[x(-.1),1.36,side*.28],[x(-.45),1.76,side*.91],[x(-.61),1.1,side*1.24]],dark,{transparent:true,opacity:.94,metalness:.08});
+        triangle(body,THREE,[[x(-.45),1.76,side*.91],[x(-.83),2.15,side*1.34],[x(-.61),1.1,side*1.24]],color,{transparent:true,opacity:.94});
       }
-      for (let i=0;i<4;i++) cone(body,THREE,accent,-dir*(.15+i*.28),1.62-i*.04,-.2,.12,.35);
-    } else if (type === 'wolf' || type === 'squirrel') {
-      const earColor = type==='squirrel' ? accent : dark;
-      cone(body,THREE,earColor,headX-dir*.15,2.0,.16,.22,.55);
-      cone(body,THREE,earColor,headX-dir*.15,2.0,-.16,.22,.55);
-      if (type === 'wolf') {
-        for (let i=0;i<4;i++) cone(body,THREE,dark,-dir*(.2+i*.23),1.62,-.3,.14,.34);
-      }
-    } else if (type === 'golem') {
-      for (let side of [-1,1]) {
-        block(body,THREE,color,-dir*.64,1.35,side*.36,.55,.68,.52,{metalness:monster.element === 'Metal' ? .58 : .08});
-        block(body,THREE,dark,-dir*.7,.48,side*.31,.42,.4,.44);
-        cone(body,THREE,accent,-dir*.3,2.02,side*.18,.24,.58,{metalness:.24});
-      }
-      for (let i=0;i<3;i++) cone(body,THREE,accent,-dir*(.1+i*.35),1.85,-.25,.16,.4);
-    } else if (type === 'squirrel') {
-      const tail = mesh(body,THREE,new THREE.TorusGeometry(.58,.25,5,9),color,{metalness:.2,emissive:monster.rare ? '#401078' : '#000000',emissiveIntensity:monster.rare ? .4 : 0});
-      tail.position.set(-dir*1.08,1.1,-.16);
-      tail.rotation.z = dir*.45;
+      quadrupedLegs(color,false);
+      taperedTail([[-.72,.98,0],[-1.13,.89,0],[-1.52,.72,0],[-1.88,.45,0],[-2.18,.38,0]],color,true);
       for (let i=0;i<5;i++) {
-        cone(body,THREE,i%2?'#f5d2ff':'#d9a5ff',-dir*(.72+i*.17),1.56+(i%3)*.16,-.12,.12,.5,{metalness:.38,emissive:'#7546a7',emissiveIntensity:.42});
+        const spike=cone(body,THREE,accent,x(.25-i*.31),1.53-i*.045,-.25,.11,.3);
+        spike.rotation.z=Math.PI;
       }
-    } else if (type === 'lion') {
-      const mane = mesh(body,THREE,new THREE.TorusGeometry(.48,.19,5,10),accent,{metalness:.18,emissive:'#8c5d1e',emissiveIntensity:.28});
-      mane.position.set(headX,1.65,0);
-      for (let i=0;i<7;i++) {
-        const angle = i * Math.PI * 2 / 7;
-        cone(body,THREE,accent,headX+Math.cos(angle)*.55,1.64+Math.sin(angle)*.55,.1,.13,.32);
+    } else if (type === 'raptor') {
+      orb(-.16,1.02,0,.73,.48,.48,color,1,{metalness,roughness:.62});
+      orb(-.57,.9,0,.39,.39,.38,dark,1);
+      orb(.32,1.28,0,.39,.5,.38,color,1);
+      const headX=.63, headY=1.79;
+      bone([.28,1.46,0],[.52,1.69,0],.2,color);
+      face(headX,headY,.31,.3,belly);
+      for (const side of [-1,1]) {
+        const armEnd=[.47,.94,side*.52];
+        bone([.23,1.34,side*.28],[.53,1.2,side*.45],.14,color);
+        bone([.53,1.2,side*.45],armEnd,.09,dark);
+        for (let toe=0;toe<3;toe++) claw(armEnd[0]+.12,.91,side*.45+(toe-1)*.07,.7,accent);
+        for (let i=0;i<3;i++) {
+          const spike=cone(body,THREE,accent,x(-.28-i*.27),1.44-i*.045,side*.16,.095,.28);
+          spike.rotation.z=Math.PI;
+        }
       }
-      cone(body,THREE,accent,headX-dir*.15,2.05,.12,.16,.48);
-    } else if (type === 'ghost') {
-      for (let i=0;i<3;i++) cone(body,THREE,accent,dir*(.42-i*.4),.3,-.05,.18,.52,{transparent:true,opacity:.72,emissive:accent,emissiveIntensity:.4});
+      for (const side of [-1,1]) {
+        bone([-.34,.91,side*.27],[-.49,.48,side*.28],.22,color);
+        orb(-.49,.48,side*.28,.2,.2,.19,color,0);
+        bone([-.49,.48,side*.28],[-.25,.14,side*.3],.13,dark);
+        orb(-.1,.13,side*.3,.25,.13,.17,color,0);
+        for(let toe=-1;toe<=1;toe++) claw(.11,.09,side*.3+toe*.08,.88,accent);
+      }
+      taperedTail([[-.58,.97,0],[-1.05,.87,0],[-1.53,.72,0],[-1.98,.57,0],[-2.28,.38,0]],color,true);
+      for (const side of [-1,1]) {
+        const crest=cone(body,THREE,accent,x(.48),2.08,side*.13,.11,.33); crest.rotation.z=dir*.15;
+      }
+    } else if (type === 'wolf' || type === 'lion') {
+      orb(-.12,1.02,0,.82,.47,.48,color,1,{metalness,roughness:.58});
+      orb(.45,1.13,0,.48,.48,.43,color,1);
+      orb(-.62,.95,0,.43,.42,.43,dark,1);
+      orb(-.05,.84,.035,.59,.21,.39,belly,1);
+      const headX=.98, headY=1.48;
+      if (type === 'lion') {
+        const mane=mesh(body,THREE,new THREE.IcosahedronGeometry(.53,1),accent,{metalness:.12,roughness:.76});
+        mane.position.set(x(.89),1.48,0); mane.scale.set(.9,1,.88);
+        for(let i=0;i<11;i++) {
+          const angle=i*Math.PI*2/11;
+          const tuft=cone(body,THREE,i%2?'#f8d477':'#d99a3c',x(.89+Math.cos(angle)*.48),1.48+Math.sin(angle)*.48,.05,.13,.36);
+          tuft.rotation.z=Math.PI/2-angle;
+        }
+      }
+      face(headX,headY,.34,.32,type==='wolf'?'#bca9bd':belly);
+      for (const side of [-1,1]) {
+        if (type === 'wolf') {
+          const ear=cone(body,THREE,dark,x(.83),1.91,side*.2,.18,.48); ear.rotation.z=dir*.14;
+          cone(body,THREE,'#cf8290',x(.84),1.91,side*.225,.085,.27);
+          for(let i=0;i<5;i++) {
+            const ruff=cone(body,THREE,i%2?color:dark,x(.55-i*.26),1.22+i*.08,side*.35,.13,.32); ruff.rotation.z=dir*.55;
+          }
+        } else {
+          orb(.89,1.45,side*.3,.44,.48,.17,accent,0);
+          const ear=cone(body,THREE,accent,x(.82),1.9,side*.22,.16,.4); ear.rotation.z=dir*.15;
+        }
+      }
+      quadrupedLegs(color,type==='lion');
+      taperedTail([[-.78,1.02,0],[-1.13,1.2,0],[-1.42,1.35,0]],color,false);
+      if(type==='lion') orb(-1.45,1.38,0,.16,.18,.17,accent,1);
+    } else if (type === 'squirrel') {
+      orb(-.12,1.02,0,.53,.69,.43,color,1,{metalness:.08,roughness:.55});
+      orb(-.13,.7,.02,.47,.35,.42,belly,1);
+      const headX=.34,headY=1.72;
+      face(headX,headY,.34,.23,belly);
+      for(const side of [-1,1]) {
+        const ear=cone(body,THREE,monster.rare?accent:dark,x(.19),2.13,side*.18,.15,.45); ear.rotation.z=dir*.08;
+        cone(body,THREE,'#efb4bb',x(.19),2.12,side*.2,.075,.27);
+        bone([.22,.83,side*.24],[.47,.54,side*.32],.13,color);
+        orb(.5,.5,side*.32,.16,.16,.14,color,0);
+        bone([-.33,.7,side*.27],[-.45,.28,side*.27],.17,dark);
+        orb(-.3,.16,side*.28,.23,.14,.18,dark,0);
+        for(let toe=0;toe<3;toe++) claw(-.1,.12,side*.28+(toe-1)*.07,.65,accent);
+      }
+      const tailPoints=[[-.48,.93,0],[-.96,1.02,-.02],[-1.36,1.32,-.05],[-1.48,1.75,-.08],[-1.27,2.04,-.1],[-.94,2.04,-.1]];
+      for(let i=0;i<tailPoints.length-1;i++) bone(tailPoints[i],tailPoints[i+1],.31-i*.033,i>2?accent:color,{metalness:monster.rare ? .42 : .08,emissive:monster.rare?'#5b1b98':'#000000',emissiveIntensity:monster.rare ? .35 : 0});
+      orb(-.94,2.04,-.1,.16,.16,.16,monster.rare?accent:color,0,{emissive:monster.rare?accent:'#000000',emissiveIntensity:monster.rare ? .5 : 0});
+      if(monster.rare) {
+        for(let i=0;i<7;i++) {
+          const spike=cone(body,THREE,i%2?'#f1caff':'#b776ff',x(-1.43+i*.075),1.35+i*.1,-.12,.105,.42,{metalness:.44,emissive:'#7535bc',emissiveIntensity:.55});
+          spike.rotation.z=dir*.3;
+        }
+      } else {
+        for(let i=0;i<3;i++) cone(body,THREE,accent,x(-1.45+i*.13),1.55+i*.12,-.1,.1,.28);
+      }
+    } else if (type === 'golem') {
+      const metalOptions={metalness:monster.element === 'Metal' ? .68 : .14,roughness:.82};
+      const torso=mesh(body,THREE,new THREE.DodecahedronGeometry(.72,0),color,metalOptions);
+      torso.position.set(x(-.05),1.1,0); torso.scale.set(1.05,1.15,.8);
+      orb(-.05,1.12,.47,.4,.47,.14,dark,0,{emissive:monster.element==='Metal'?'#6ad4e4':'#000000',emissiveIntensity:.45});
+      block(body,THREE,color,x(.02),1.77,0,.64,.26,.57,metalOptions);
+      const head=mesh(body,THREE,new THREE.DodecahedronGeometry(.31,0),color,metalOptions); head.position.set(x(.49),1.88,0);
+      for(const side of [-1,1]) {
+        orb(.57,1.9,side*.19,.065,.07,.035,'#b8f0d1',0,{emissive:'#4bd68c',emissiveIntensity:.75});
+        const shoulder=mesh(body,THREE,new THREE.DodecahedronGeometry(.29,0),dark,metalOptions); shoulder.position.set(x(.02),1.42,side*.43);
+        bone([.02,1.4,side*.45],[.27,.92,side*.53],.25,color,metalOptions);
+        orb(.27,.92,side*.53,.27,.26,.25,dark,0,metalOptions);
+        bone([.27,.92,side*.53],[.48,.57,side*.53],.24,color,metalOptions);
+        orb(.53,.47,side*.54,.35,.3,.31,color,0,metalOptions);
+        bone([-.36,.85,side*.28],[-.42,.35,side*.3],.24,dark,metalOptions);
+        orb(-.35,.24,side*.3,.34,.22,.32,color,0,metalOptions);
+        for(let i=0;i<3;i++) {
+          const shard=cone(body,THREE,monster.element==='Metal'?'#d4e6ed':accent,x(-.05+i*.14),2.0,side*.18,.13,.32,metalOptions); shard.rotation.z=Math.PI;
+        }
+      }
+      for(let i=0;i<5;i++) {
+        const plate=ico(body,THREE,i%2?dark:accent,x(-.57+i*.26),1.13,.51,.18,.13,.1,0,{metalness:.35});
+        plate.rotation.z=dir*.18;
+      }
+    } else if (type === 'serpent') {
+      const bodyPoints=[[-1.32,.37,0],[-.98,.48,0],[-.66,.69,0],[-.3,.92,0],[.05,1.13,0],[.35,1.37,0],[.48,1.69,0]];
+      for(let i=0;i<bodyPoints.length-1;i++) {
+        bone(bodyPoints[i],bodyPoints[i+1],.28-i*.028,i%2?color:dark);
+        orb(bodyPoints[i+1][0],bodyPoints[i+1][1],0,.26-i*.028,.24-i*.02,.25-i*.022,color,0);
+      }
+      const headX=.54,headY=1.84;
+      orb(headX,headY,0,.32,.32,.3,color,1);
+      orb(.8,1.76,.02,.28,.16,.24,belly,0);
+      addEyes(body,THREE,.57,1.88,dir,'#f7e77c',.78);
+      for(const side of [-1,1]) {
+        const hood=triangle(body,THREE,[[x(.1),1.42,side*.14],[x(-.3),1.91,side*.48],[x(.44),1.7,side*.15]],accent,{transparent:true,opacity:.9});
+        hood.material.side=THREE.DoubleSide;
+        cone(body,THREE,accent,x(.48),2.15,side*.17,.09,.32);
+      }
     } else if (type === 'bird') {
-      for (let side of [-1,1]) triangle(body,THREE,[[-dir*.1,1.45,side*.34],[-dir*.65,2.03,side*.78],[dir*.25,1.05,side*.6]],accent,{metalness:.08});
-      cone(body,THREE,accent,headX-dir*.15,2.0,.1,.14,.45);
-    }
-
-    if (type === 'wolf' || type === 'dragon' || type === 'raptor' || type === 'squirrel' || type === 'lion') {
-      for (let i=0;i<4;i++) ico(body,THREE,i%2?dark:color,-dir*(.78+i*.25),1.02+(type==='wolf'?i*.13:0),0,.25-i*.035,.2-i*.02,.2-i*.02,0);
+      orb(-.04,1.02,0,.72,.48,.48,color,1,{metalness,roughness:.58});
+      orb(.56,1.42,0,.34,.37,.32,color,1);
+      const beak=cone(body,THREE,'#e9a54c',x(.91),1.36,.02,.18,.46); beak.rotation.z=-dir*Math.PI/2;
+      addEyes(body,THREE,.62,1.45,dir,eyeColor,.82);
+      for(const side of [-1,1]) {
+        triangle(body,THREE,[[x(.15),1.34,side*.3],[x(-.31),1.95,side*.85],[x(-.66),.95,side*.58]],accent,{metalness:.12});
+        for(let feather=0;feather<3;feather++) triangle(body,THREE,[[x(-.15-feather*.08),1.43,side*.38],[x(-.5-feather*.1),1.15,side*(.65+feather*.1)],[x(-.45-feather*.1),.98,side*.5]],dark);
+        bone([-.2,.76,side*.16],[-.2,.24,side*.16],.1,'#a87443');
+        for(let toe=0;toe<3;toe++) claw(.01,.19,side*.16+(toe-1)*.09,.7,'#d9b76a');
+      }
+      taperedTail([[-.55,.98,0],[-1.02,.79,0],[-1.4,.7,0]],accent,false);
+    } else if (type === 'ghost') {
+      const robe=mesh(body,THREE,new THREE.ConeGeometry(.58,1.34,8,3),color,{transparent:true,opacity:.82,emissive:color,emissiveIntensity:.28});
+      robe.position.set(x(-.05),.93,0); robe.scale.set(1,.94,.8);
+      orb(.25,1.72,0,.4,.4,.35,color,1,{transparent:true,opacity:.88,emissive:color,emissiveIntensity:.23});
+      addEyes(body,THREE,.32,1.76,dir,eyeColor,.9);
+      for(const side of [-1,1]) {
+        bone([.04,1.26,side*.25],[.46,1.02,side*.47],.13,color,{transparent:true,opacity:.8,emissive:color,emissiveIntensity:.2});
+        const wisp=cone(body,THREE,accent,x(.48),.45,side*.1,.16,.55,{transparent:true,opacity:.75,emissive:accent,emissiveIntensity:.48}); wisp.rotation.z=Math.PI;
+      }
+      for(let i=0;i<3;i++) cone(body,THREE,accent,x(-.45+i*.4),.29+(i%2)*.08,-.06,.15,.42,{transparent:true,opacity:.78,emissive:accent,emissiveIntensity:.42});
     }
     addElementDetails(body,THREE,monster,dir,accent);
-    return { root:root,body:body,facing:dir };
+    return { root:root,body:body,facing:facing || 1 };
   }
   function buildEgg(THREE) {
     const root = new THREE.Group();
