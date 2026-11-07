@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0b12">
-  <meta name="description" content="Hatch and train a realistic 3D elemental creature, then guide it through a turn-based arena battle.">
+  <meta name="description" content="Hatch, train, and battle animated original elemental monsters in a turn-based arena.">
   <title>Hatch &amp; Battle | EdgeSquirrel</title>
   <style>
     :root {
@@ -148,16 +148,18 @@
     .battle-log { min-height:44px; max-height:102px; overflow:auto; margin:10px 0 0; padding:8px 10px; border:1px solid rgba(255,255,255,.07); border-radius:10px; background:rgba(0,0,0,.2); color:#d4cee2; font-size:9px; line-height:1.55; }
     .rare-note { color:#d7b8ff; }
     .monster-view { display:contents; }
-    .monster-art canvas { position:relative; z-index:1; display:block; width:100%; height:210px; }
-    .monster-art .art-fallback { position:relative; z-index:1; }
-    .monster-art .art-fallback img { display:block; width:min(100%,240px); height:190px; object-fit:contain; filter:drop-shadow(0 15px 18px rgba(0,0,0,.45)); }
+    .monster-art .art-fallback { position:relative; z-index:1; display:grid; width:100%; height:210px; place-items:center; }
+    .monster-art .art-fallback[hidden] { display:none; }
+    .monster-art .art-fallback img { display:block; width:min(100%,270px); height:205px; object-fit:contain; filter:drop-shadow(0 15px 18px rgba(0,0,0,.45)); animation:spriteHover 3.2s ease-in-out infinite; }
+    .monster-art .art-fallback svg { display:block; width:min(100%,200px); height:170px; filter:drop-shadow(0 12px 18px rgba(0,0,0,.3)); }
+    @keyframes spriteHover { 0%,100%{transform:translateY(0) rotate(-.3deg)} 50%{transform:translateY(-4px) rotate(.3deg)} }
     .monster-stage.battle-active { display:block; min-height:0; padding:12px; }
     .stage-battle { display:block; width:100%; margin:0; padding:0; border:0; background:transparent; }
     .stage-scene { position:relative; min-height:330px; overflow:hidden; border:1px solid rgba(168,139,255,.22); border-radius:16px; background:radial-gradient(ellipse at 50% 25%,rgba(112,75,202,.18),transparent 58%),linear-gradient(180deg,#14131e,#0b0b12); }
     .stage-scene canvas { display:block; width:100%; height:330px; }
     .battle-model-fallback { position:absolute; z-index:1; inset:45px 10px 12px; display:grid; grid-template-columns:1fr 1fr; align-items:end; pointer-events:none; }
     .battle-model-fallback[hidden] { display:none; }
-    .battle-model-fallback img { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 15px 18px rgba(0,0,0,.52)); }
+    .battle-model-fallback img { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 15px 18px rgba(0,0,0,.52)); transition:filter .18s ease; }
     .battle-model-fallback img:last-child { transform:scaleX(-1); }
     .battle-model-fallback img.attacking-player { animation:fallbackPlayerLunge .52s cubic-bezier(.2,.8,.2,1); }
     .battle-model-fallback img.attacking-rival { animation:fallbackRivalLunge .52s cubic-bezier(.2,.8,.2,1); }
@@ -292,7 +294,7 @@
       <div>
         <p class="eyebrow">A little monster-training game</p>
         <h1>Hatch. Train.<br><span>Battle.</span></h1>
-        <p class="hero-copy">Hatch a detailed 3D creature, train any stat your way, then guide it through a turn-based arena battle. Keep winning to climb levels and set your best run.</p>
+        <p class="hero-copy">Hatch an animated elemental monster, train any stat your way, then guide it through a turn-based arena battle. Keep winning to climb levels and set your best run.</p>
       </div>
       <div class="hero-note"><strong>One run = four in-game weeks.</strong><br>No real-world waiting. Choose any stat each of the first three weeks, then command your attacks in Week 4.</div>
     </section>
@@ -313,7 +315,7 @@
         <div class="monster-stage" id="monster-stage" data-room="crystal">
           <span class="room-label" id="room-label">The Crystal Vault</span>
           <div class="monster-view" id="monster-view">
-            <div class="monster-art" id="monster-art" aria-hidden="true"><canvas id="shared-3d-canvas" aria-label="Three dimensional monster preview and battle"></canvas><div class="art-fallback" id="art-fallback" hidden></div></div>
+            <div class="monster-art" id="monster-art" aria-hidden="true"><div class="art-fallback" id="art-fallback"></div></div>
             <div class="monster-info">
               <p class="monster-kind" id="monster-kind">Waiting to hatch</p>
               <h2 class="monster-name" id="monster-name">A little egg</h2>
@@ -325,7 +327,6 @@
           <section class="battle-screen stage-battle" id="battle-screen" aria-label="Battle arena" hidden>
             <div class="stage-scene">
               <div class="battle-model-fallback" id="battle-art-fallback" hidden aria-hidden="true"><img id="player-model-fallback" alt=""><img id="rival-model-fallback" alt=""></div>
-              <div class="three-warning" id="three-warning" hidden>3D display unavailable. Your game progress and battle controls still work.</div>
               <div class="effect-flash" id="effect-flash"></div>
               <div class="stage-hud">
                 <div class="stage-fighter player"><div class="fighter-heading"><span id="player-combat-name">Your monster</span><span>YOU</span></div><div class="fighter-type" id="player-element-name">Element</div><div class="fighter-hp-text"><span>Health</span><strong id="player-hp-label">0 / 0</strong></div><div class="hp-track"><div class="hp-fill" id="player-hp-fill"></div></div></div>
@@ -385,7 +386,7 @@
         <section class="card side-card">
           <h2 class="side-title">How to play</h2>
           <ol class="rules-list">
-            <li><span class="rule-number">1</span><span>Hatch an egg to meet a detailed 3D creature with its own look and starting stats.</span></li>
+            <li><span class="rule-number">1</span><span>Hatch an egg to meet an animated elemental monster with its own look and starting stats.</span></li>
             <li><span class="rule-number">2</span><span>In Weeks 1–3, choose any stat each time, including the same stat repeatedly. Strength adds attack and health, Defense reduces damage, and Speed improves accuracy.</span></li>
             <li><span class="rule-number">3</span><span>In Week 4, choose attacks during a turn-based fight. Element matchups can make a move stronger or weaker.</span></li>
             <li><span class="rule-number">4</span><span>A win adds a level and starts another three-week training cycle. A loss brings a new Level 0 egg.</span></li>
@@ -408,20 +409,22 @@
       { key: 'speed', label: 'Speed', mark: '➤' }
     ];
     const MONSTERS = [
-      { id:'emberdrake', name:'Ember Drake', kind:'Fire-breathing reptile', element:'Fire', archetype:'dragon', color:'#e7734e', light:'#ffd07b', stats:{strength:7,defense:5,speed:4}, description:'A young dragon with a hot temper and a bright flame.', moves:[{name:'Cinder Claw',power:7,accuracy:94},{name:'Tail Scorch',power:10,accuracy:78},{name:'Flame Guard',power:5,accuracy:100,guard:3}], shape:'<path d="M52 104 38 75l25 10 9-32 21 15 20-16 18 30 28-12-17 36-4 27-24 16H79l-25-18Z" fill="currentColor"/><path d="m67 78-15-34 31 19m43 7 24-29-7 38M61 113 29 96l7 30 28 8m69-20 29-16-3 34-32 13" fill="currentColor" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="m80 78-2-15 14 12m28 2 12-15 4 20" fill="none" stroke="currentColor" stroke-width="5"/>' },
-      { id:'frostdrake', name:'Frostscale', kind:'Ice dragon', element:'Ice', archetype:'dragon', color:'#65b8d3', light:'#d3fbff', stats:{strength:5,defense:7,speed:5}, description:'A calm glacier drake with crystal horns and icy scales.', moves:[{name:'Frost Bite',power:8,accuracy:90},{name:'Glacier Rush',power:11,accuracy:72},{name:'Ice Shell',power:4,accuracy:100,guard:4}], shape:'<path d="M53 106 43 77l26 10 4-39 24 21 17-21 18 37 26-10-14 35-5 28-24 14H78l-22-18Z" fill="currentColor"/><path d="m68 77-7-31 24 23m42 2 19-27-3 38m-75 29-28-18 7 33 28 8m68-22 25-17-2 34-30 14" fill="currentColor" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/><path d="m75 80 8-19 12 15m24 1 13-17 2 22" fill="none" stroke="#ddffff" stroke-width="4"/>' },
-      { id:'duskfang', name:'Duskfang', kind:'Shadow wolf', element:'Dark', archetype:'wolf', color:'#8879bd', light:'#d5c7ff', stats:{strength:6,defense:5,speed:7}, description:'A quick-footed wolf that hunts beneath the evening stars.', moves:[{name:'Moon Pounce',power:8,accuracy:93},{name:'Shadow Rush',power:10,accuracy:82},{name:'Pack Guard',power:4,accuracy:100,guard:3}], shape:'<path d="M54 106 41 45l39 24q20-11 40 0l39-24-15 65q4 27-19 38l-24-7-20 7q-28-11-27-42Z" fill="currentColor"/><path d="m62 70-15-35 34 25m49 10 22-33-7 42M61 126l-16 17 26-7m64-10 21 14-31-4" fill="currentColor" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="M137 112q28 2 31 20-17-9-29-4" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round"/>' },
-      { id:'stormwolf', name:'Stormwolf', kind:'Lightning wolf', element:'Electric', archetype:'wolf', color:'#5f8fb3', light:'#b8f1ff', stats:{strength:5,defense:5,speed:8}, description:'A silver wolf that darts like a streak of lightning.', moves:[{name:'Spark Bite',power:7,accuracy:96},{name:'Thunder Dash',power:10,accuracy:85},{name:'Static Veil',power:4,accuracy:100,guard:3}], shape:'<path d="M54 107 43 48l37 21q20-10 40 0l39-25-14 65q4 26-20 39l-24-8-20 8q-26-11-27-41Z" fill="currentColor"/><path d="m62 72-13-37 34 25m48 10 21-34-7 43M59 126l-15 17 27-7m65-10 20 14-30-4" fill="currentColor" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="m108 61-10 22 13 3-9 21 24-30-14-2 8-14Z" fill="#d8fcff"/>' },
-      { id:'mossgolem', name:'Moss Golem', kind:'Ancient stone guardian', element:'Earth', archetype:'golem', color:'#718c73', light:'#b9e0a5', stats:{strength:6,defense:9,speed:3}, description:'A gentle giant pieced together from old stones and roots.', moves:[{name:'Boulder Fist',power:9,accuracy:88},{name:'Quake Stomp',power:12,accuracy:70},{name:'Stone Wall',power:3,accuracy:100,guard:5}], shape:'<path d="m54 74 19-24 22 8 21-14 26 24-5 58-24 20-49-2-19-25Z" fill="currentColor"/><path d="m58 77-22-18 4 34 20 12m80-29 23-16-6 36-20 12m-69 26-15 18 32-7m48-11 20 17-34-8" fill="currentColor" stroke="currentColor" stroke-width="8" stroke-linejoin="round"/><path d="m74 62 12-17 9 18m27-1 14-17 1 26" fill="currentColor" stroke="#b9e0a5" stroke-width="4"/><path d="M91 110h17v19H91Z" fill="#435b4d"/>' },
-      { id:'obsidiangolem', name:'Iron Golem', kind:'Armoured metal guardian', element:'Metal', archetype:'golem', color:'#80909e', light:'#d4e6ed', stats:{strength:7,defense:9,speed:3}, description:'A plated guardian that turns aside attacks with metal armour.', moves:[{name:'Steel Fist',power:9,accuracy:88},{name:'Gear Breaker',power:12,accuracy:74},{name:'Iron Shell',power:3,accuracy:100,guard:5}], shape:'<path d="m54 75 22-27 19 11 22-15 24 27-8 57-23 18-48-4-17-27Z" fill="currentColor"/><path d="m57 77-23-19 6 36 20 12m79-29 24-18-7 39-20 10m-68 27-15 18 31-7m50-11 20 17-35-8" fill="currentColor" stroke="currentColor" stroke-width="8" stroke-linejoin="round"/><path d="m75 64 12-19 10 18m27-2 12-18 2 25" fill="currentColor" stroke="#d4e6ed" stroke-width="4"/><path d="m83 91 11 8-8 14m28-19-8 13 11 8" fill="none" stroke="#d4e6ed" stroke-width="4" stroke-linecap="round"/>' },
-      { id:'reefraptor', name:'Tide Raptor', kind:'Aquatic dinosaur', element:'Water', archetype:'raptor', color:'#39a7a5', light:'#a7fff0', stats:{strength:6,defense:5,speed:7}, description:'A clever shoreline dinosaur with a finned tail and quick claws.', moves:[{name:'Tide Claw',power:7,accuracy:94},{name:'Riptide Spin',power:10,accuracy:80},{name:'Current Guard',power:4,accuracy:100,guard:3}], shape:'<path d="M53 105 46 75l25 10 10-33 18 19 19-17 18 32 24-9-16 35-7 25-24 13H78l-21-18Z" fill="currentColor"/><path d="m69 77-5-30 25 25m41 3 17-27 1 38m-77 27-30-15 10 32 28 4m71-21 27-18-5 35-32 13" fill="currentColor" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/><path d="M102 130 93 153l14-10 12 12-3-25" fill="#a7fff0"/>' },
-      { id:'crystalsquirrel', name:'Crystal Squirrel', kind:'Rare · Crystal-tail beast', element:'Psychic', archetype:'squirrel', color:'#9b4dff', light:'#f5d2ff', rare:true, stats:{strength:6,defense:6,speed:7}, description:'A fierce purple squirrel with a huge crystal-spiked tail. Rare hatch: about 5%.', moves:[{name:'Crystal Claw',power:8,accuracy:94},{name:'Prism Tail',power:11,accuracy:82},{name:'Shard Guard',power:4,accuracy:100,guard:4}], shape:'<path d="M54 104 45 63l27 18q18-12 39-2l27-20-9 51q4 27-21 39l-21-8-22 8q-24-10-24-39Z" fill="currentColor"/><path d="M132 117q29-6 39 13l-17 5 19 10-23 1 12 18-25-9-4 20-13-20 7-21Z" fill="currentColor" stroke="#f0c6ff" stroke-width="3" stroke-linejoin="round"/><path d="m131 125 14 8-13 6m8 0 16 7-15 5m-80-76-11-30 29 24m45 4 19-31 3 40" fill="currentColor" stroke="#f0c6ff" stroke-width="5" stroke-linejoin="round"/><path d="m148 122 8 10-10 7 13 6-13 5 8 13" fill="none" stroke="#fff0ff" stroke-width="3"/>' },
-      { id:'thornback', name:'Thornback', kind:'Verdant reptile', element:'Grass', archetype:'raptor', color:'#65a85a', light:'#d5f58b', stats:{strength:6,defense:7,speed:4}, description:'A plant-armoured reptile with a leafy crest and steady footing.', moves:[{name:'Vine Lash',power:8,accuracy:90},{name:'Bramble Rush',power:10,accuracy:82},{name:'Leaf Guard',power:4,accuracy:100,guard:4}] },
-      { id:'sunmane', name:'Sunmane', kind:'Radiant lion guardian', element:'Light', archetype:'lion', color:'#e8b75a', light:'#fff4ad', stats:{strength:7,defense:6,speed:5}, description:'A bright-hearted lion whose mane shines like a small sun.', moves:[{name:'Solar Roar',power:8,accuracy:90},{name:'Dawn Pounce',power:10,accuracy:84},{name:'Halo Guard',power:4,accuracy:100,guard:4}] },
-      { id:'wispound', name:'Wisp Hound', kind:'Ghostly companion', element:'Ghost', archetype:'ghost', color:'#93a2d2', light:'#e0e7ff', stats:{strength:5,defense:5,speed:8}, description:'A floating hound that slips between the shadows of the arena.', moves:[{name:'Phantom Bite',power:8,accuracy:92},{name:'Haunt Dash',power:10,accuracy:86},{name:'Mist Veil',power:4,accuracy:100,guard:4}] },
-      { id:'venomcoil', name:'Venomcoil', kind:'Poison serpent', element:'Poison', archetype:'serpent', color:'#83a34d', light:'#d8f17e', stats:{strength:7,defense:5,speed:6}, description:'A quick-scaled serpent with a bright venom crest.', moves:[{name:'Venom Fang',power:8,accuracy:91},{name:'Toxic Whip',power:10,accuracy:80},{name:'Spore Screen',power:4,accuracy:100,guard:4}] },
-      { id:'skydactyl', name:'Skydactyl', kind:'Wind-riding dinosaur', element:'Air', archetype:'bird', color:'#5e9ed1', light:'#c4efff', stats:{strength:5,defense:5,speed:9}, description:'A swift flying dinosaur that dives through the arena on the wind.', moves:[{name:'Gale Beak',power:7,accuracy:96},{name:'Sky Dive',power:10,accuracy:84},{name:'Updraft Guard',power:4,accuracy:100,guard:3}] }
+      { id:'ember-drake', name:'Ember Drake', kind:'Fire reptile', element:'Fire', archetype:'dragon', color:'#e7734e', light:'#ffd07b', stats:{strength:7,defense:5,speed:4}, description:'A fierce ember-scaled drake with flame-bright feathers and a molten core.', moves:[{name:'Cinder Claw',power:7,accuracy:94},{name:'Tail Scorch',power:10,accuracy:78},{name:'Flame Guard',power:5,accuracy:100,guard:3}] },
+      { id:'reef-strider', name:'Reef Strider', kind:'Water speedster', element:'Water', archetype:'raptor', color:'#39a7a5', light:'#a7fff0', stats:{strength:5,defense:4,speed:9}, description:'A small, quick reef-runner with webbed feet and a ridged coral mantle.', moves:[{name:'Riptide Pounce',power:7,accuracy:96},{name:'Reef Shear',power:10,accuracy:82},{name:'Current Guard',power:4,accuracy:100,guard:3}] },
+      { id:'briar-raptor', name:'Briar Raptor', kind:'Grass forest-runner', element:'Grass', archetype:'raptor', color:'#65a85a', light:'#d5f58b', stats:{strength:6,defense:5,speed:7}, description:'A nimble forest creature with leaf-blades, bark plates, and seed pods.', moves:[{name:'Vine Lunge',power:8,accuracy:90},{name:'Briar Slash',power:10,accuracy:82},{name:'Seed Guard',power:4,accuracy:100,guard:4}] },
+      { id:'rock-golem', name:'Rock Golem', kind:'Earth defender', element:'Earth', archetype:'golem', color:'#8a735d', light:'#e0bd83', stats:{strength:7,defense:9,speed:3}, description:'A sturdy two-legged guardian with natural stone plates and a glowing geode.', moves:[{name:'Boulder Fist',power:9,accuracy:88},{name:'Quake Stomp',power:12,accuracy:70},{name:'Stone Wall',power:3,accuracy:100,guard:5}] },
+      { id:'dawncrest', name:'Dawncrest', kind:'Light avian guardian', element:'Light', archetype:'bird', color:'#e8b75a', light:'#fff4ad', stats:{strength:6,defense:6,speed:6}, description:'A radiant long-legged guardian with a sunburst crest and glowing feather tips.', moves:[{name:'Sunburst Wing',power:8,accuracy:91},{name:'Dawn Strike',power:10,accuracy:84},{name:'Radiant Guard',power:4,accuracy:100,guard:4}] },
+      { id:'shadow-spider', name:'Shadow Spider', kind:'Dark web-stalker', element:'Dark', archetype:'spider', color:'#4f426d', light:'#d5a4ff', stats:{strength:7,defense:5,speed:7}, description:'An eight-legged midnight hunter with violet eyes and a trailing shadow veil.', moves:[{name:'Night Pounce',power:8,accuracy:92},{name:'Umbral Thread',power:10,accuracy:82},{name:'Shadow Screen',power:4,accuracy:100,guard:4}] },
+      { id:'frost-wolf', name:'Frost Wolf', kind:'Ice wolf', element:'Ice', archetype:'wolf', color:'#a9bad3', light:'#c9f5ff', stats:{strength:7,defense:6,speed:7}, description:'A silver-white wolf with blue ice plates and a piercing glacial gaze.', moves:[{name:'Frost Bite',power:8,accuracy:90},{name:'Glacier Rush',power:11,accuracy:78},{name:'Ice Shell',power:4,accuracy:100,guard:4}] },
+      { id:'volt-lynx', name:'Volt Lynx', kind:'Electric sprinter', element:'Electric', archetype:'wolf', color:'#3d7fb3', light:'#b8f1ff', stats:{strength:6,defense:4,speed:9}, description:'A sleek lynx whose crystal plates crackle with branching electric arcs.', moves:[{name:'Spark Claw',power:7,accuracy:96},{name:'Thunder Dash',power:10,accuracy:85},{name:'Static Veil',power:4,accuracy:100,guard:3}] },
+      { id:'crystal-squirrel', name:'Crystal Squirrel', kind:'Rare · Psychic crystal-tail beast', element:'Psychic', archetype:'squirrel', color:'#9b4dff', light:'#f5d2ff', rare:true, stats:{strength:6,defense:6,speed:7}, description:'A fierce purple squirrel with a huge crystal-spiked tail. Rare hatch: about 5%.', moves:[{name:'Crystal Claw',power:8,accuracy:94},{name:'Prism Tail',power:11,accuracy:82},{name:'Shard Guard',power:4,accuracy:100,guard:4}] },
+      { id:'hooded-ghoul', name:'Hooded Ghoul', kind:'Ghost shroud-walker', element:'Ghost', archetype:'ghost', color:'#6676a5', light:'#c2e8ff', stats:{strength:5,defense:5,speed:8}, description:'A pale, cracked face peers from a ragged cloak of spectral vapor.', moves:[{name:'Phantom Claw',power:8,accuracy:92},{name:'Haunt Dash',power:10,accuracy:86},{name:'Wraith Veil',power:4,accuracy:100,guard:4}] },
+      { id:'mire-toad', name:'Mire Toad', kind:'Poison rainforest sprinter', element:'Poison', archetype:'toad', color:'#42925b', light:'#c8ff67', stats:{strength:5,defense:4,speed:10}, description:'A small, skinny rainforest toad with springing legs and glowing venom glands.', moves:[{name:'Toxic Tongue',power:7,accuracy:95},{name:'Bog Leap',power:10,accuracy:83},{name:'Spore Screen',power:4,accuracy:100,guard:4}] },
+      { id:'gale-kite', name:'Gale Kite', kind:'Air glider', element:'Air', archetype:'bird', color:'#a9c8e0', light:'#bdf8ff', stats:{strength:5,defense:4,speed:10}, description:'A swift kite-winged glider with a split ribbon tail that rides the wind.', moves:[{name:'Gale Beak',power:7,accuracy:96},{name:'Sky Dive',power:10,accuracy:84},{name:'Updraft Guard',power:4,accuracy:100,guard:3}] },
+      { id:'metal-serpent', name:'Metal Serpent', kind:'Metal jaw-breaker', element:'Metal', archetype:'serpent', color:'#89949c', light:'#ffd188', stats:{strength:8,defense:8,speed:4}, description:'A powerful steel-scaled serpent with a reinforced jaw built to crush ore-bearing stone.', moves:[{name:'Crushing Bite',power:10,accuracy:86},{name:'Iron Coil',power:11,accuracy:78},{name:'Steel Guard',power:3,accuracy:100,guard:5}] },
+      { id:'poison-moth', name:'Poison Moth', kind:'Toxic wing-beast', element:'Poison', archetype:'moth', color:'#418d68', light:'#c6ff69', stats:{strength:6,defense:4,speed:8}, description:'An emerald-and-violet moth with toxic eye-spots and bright venom sacs.', moves:[{name:'Venom Dust',power:8,accuracy:92},{name:'Wing Slice',power:10,accuracy:82},{name:'Toxic Veil',power:4,accuracy:100,guard:4}] }
     ];
+    const LEGACY_MONSTER_IDS = { emberdrake:'ember-drake', frostdrake:'frost-wolf', duskfang:'shadow-spider', stormwolf:'volt-lynx', mossgolem:'rock-golem', obsidiangolem:'metal-serpent', reefraptor:'reef-strider', crystalsquirrel:'crystal-squirrel', thornback:'briar-raptor', sunmane:'dawncrest', wispound:'hooded-ghoul', venomcoil:'mire-toad', skydactyl:'gale-kite' };
     const ROOMS = [
       { id:'crystal', name:'The Crystal Vault' }, { id:'ember', name:'The Ember Hall' },
       { id:'moon', name:'The Moonlit Ruins' }, { id:'moss', name:'The Moss Grotto' }
@@ -466,6 +469,7 @@
           scores: Array.isArray(saved.scores) ? saved.scores : [],
           battle: saved.battle && typeof saved.battle === 'object' ? saved.battle : null
         });
+        restored.previousMonsterId = LEGACY_MONSTER_IDS[restored.previousMonsterId] || restored.previousMonsterId;
         if (restored.monster) restored.monster = restoreMonster(restored.monster);
         if (restored.rival) restored.rival = restoreMonster(restored.rival);
         if (!ROOMS.some(function (room) { return room.id === restored.room; })) restored.room = 'crystal';
@@ -486,10 +490,11 @@
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
     function restoreMonster(monster) {
-      const template = MONSTERS.find(function (item) { return item.id === monster.id; });
-      if (template) return Object.assign({}, template, monster, { shape: template.shape, moves: template.moves, rare: template.rare || false });
+      const normalizedId = LEGACY_MONSTER_IDS[monster.id] || monster.id;
+      const template = MONSTERS.find(function (item) { return item.id === normalizedId; });
+      if (template) return Object.assign({}, template, monster, { id:template.id, moves:template.moves, rare:template.rare || false });
       const replacement = MONSTERS.find(function (item) { return !item.rare; });
-      return Object.assign({}, replacement, monster, { id: replacement.id, name: replacement.name, kind: replacement.kind, shape: replacement.shape, moves: replacement.moves, color: replacement.color, light: replacement.light, description: replacement.description });
+      return Object.assign({}, replacement, monster, { id:replacement.id, name:replacement.name, kind:replacement.kind, element:replacement.element, archetype:replacement.archetype, moves:replacement.moves, color:replacement.color, light:replacement.light, description:replacement.description, rare:replacement.rare || false });
     }
     function pickMonster(excludeId) {
       const rare = MONSTERS.find(function (monster) { return monster.rare; });
@@ -516,32 +521,43 @@
       const shape = monster.shape || artByType[monster.archetype] || artByType.dragon;
       return '<svg viewBox="0 0 200 170" role="img" aria-label="' + escapeHtml(monster.name) + ' illustration" style="color:' + monster.color + '"><ellipse cx="100" cy="150" rx="52" ry="8" fill="#08080e" opacity=".45"/><circle cx="100" cy="88" r="69" fill="' + monster.color + '" opacity=".09"/><g>' + shape + '</g><ellipse cx="84" cy="94" rx="5" ry="7" fill="#211b31"/><ellipse cx="116" cy="94" rx="5" ry="7" fill="#211b31"/><circle cx="85" cy="92" r="1.6" fill="#fff"/><circle cx="117" cy="92" r="1.6" fill="#fff"/><path d="M94 108c4 4 8 4 12 0" fill="none" stroke="#342541" stroke-width="3" stroke-linecap="round"/><path d="M62 91c5-3 11-3 16-1m44 0c5-2 11-2 16 1" fill="none" stroke="' + monster.light + '" stroke-width="2" stroke-linecap="round" opacity=".8"/>' + (monster.rare ? '<path d="m151 42 4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1Z" fill="#fff0ff" opacity=".95"/><circle cx="55" cy="55" r="3" fill="#e8c4ff"/><circle cx="151" cy="91" r="2.5" fill="#fff"/>' : '') + '</svg>';
     }
-    function monsterPreviewPath(monster) {
+    function monsterPreviewPath(monster, action, frame) {
       if (!monster) return '';
-      if (monster.rare && monster.archetype === 'squirrel') return 'assets/monsters/previews/crystal-squirrel.png';
-      const safeArchetypes = ['dragon','wolf','raptor','golem','squirrel','lion','ghost','serpent','bird'];
-      const archetype = safeArchetypes.includes(monster.archetype) ? monster.archetype : 'dragon';
-      return 'assets/monsters/previews/' + archetype + '.png';
+      const known = MONSTERS.some(function (item) { return item.id === monster.id; });
+      const id = known ? monster.id : 'ember-drake';
+      const kind = action === 'attack' ? 'attack' : 'idle';
+      const number = Math.max(1, Number(frame) || 1);
+      return 'monster-animations/' + id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png';
     }
     function renderArt() {
       const fallback = document.getElementById('art-fallback');
       const previewPath = monsterPreviewPath(state.monster);
-      fallback.innerHTML = previewPath ? '<img src="' + previewPath + '" alt="' + escapeHtml(state.monster.name) + ' 3D model">' : monsterArt(null);
-      const fallbackImage = fallback.querySelector('img');
-      if (fallbackImage) fallbackImage.addEventListener('error', function () { fallback.innerHTML = monsterArt(state.monster); });
-      if (!window.hatch3dReady) fallback.hidden = false;
+      const shownId = state.monster ? state.monster.id : 'mystery-egg';
+      if (fallback.dataset.monsterId !== shownId) {
+        fallback.innerHTML = previewPath ? '<img id="single-monster-sprite" src="' + previewPath + '" alt="' + escapeHtml(state.monster.name) + '">' : monsterArt(null);
+        fallback.dataset.monsterId = shownId;
+        const fallbackImage = fallback.querySelector('img');
+        if (fallbackImage) fallbackImage.addEventListener('error', function () { fallbackImage.hidden = true; });
+      }
+      fallback.hidden = false;
       document.getElementById('monster-art').setAttribute('aria-label', state.monster ? state.monster.name + ' preview' : 'Mysterious egg preview');
       const room = ROOMS.find(function (item) { return item.id === state.room; }) || ROOMS[0];
       const arena = BATTLE_ARENAS.find(function (item) { return item.id === state.arena; });
       const isBattle = state.phase === 'battleReady' || state.phase === 'battle';
       const battleFallback = document.getElementById('battle-art-fallback');
-      if (!window.hatch3dReady) battleFallback.hidden = !isBattle;
+      battleFallback.hidden = !isBattle;
       if (isBattle && state.monster && state.rival) {
         const playerImage = document.getElementById('player-model-fallback');
         const rivalImage = document.getElementById('rival-model-fallback');
-        playerImage.src = monsterPreviewPath(state.monster);
+        if (playerImage.dataset.monsterId !== state.monster.id) {
+          playerImage.src = monsterPreviewPath(state.monster);
+          playerImage.dataset.monsterId = state.monster.id;
+        }
         playerImage.alt = state.monster.name;
-        rivalImage.src = monsterPreviewPath(state.rival);
+        if (rivalImage.dataset.monsterId !== state.rival.id) {
+          rivalImage.src = monsterPreviewPath(state.rival);
+          rivalImage.dataset.monsterId = state.rival.id;
+        }
         rivalImage.alt = state.rival.name;
       }
       document.getElementById('monster-stage').dataset.room = isBattle ? (arena ? arena.id : 'meadow') : (state.phase === 'training' ? 'gym' : room.id);
@@ -678,10 +694,10 @@
       box.append(title, detail);
       panel.append(box);
     }
-    function update3DScene() {
+    function updateSpriteScene() {
       const snapshot = { phase:state.phase, room:state.room, arena:state.arena, trainingFocus:state.trainingFocus, monster:state.monster, rival:state.rival, battle:state.battle, level:state.level };
-      window.hatch3dSnapshot = snapshot;
-      if (window.hatch3dSetState) window.hatch3dSetState(snapshot);
+      window.monsterSpriteSnapshot = snapshot;
+      if (window.monsterSpritesSetState) window.monsterSpritesSetState(snapshot);
     }
     function render() {
       renderArt();
@@ -731,7 +747,7 @@
       }
       const nameInput = document.getElementById('trainer-name');
       if (document.activeElement !== nameInput && nameInput.value !== state.trainerName) nameInput.value = state.trainerName;
-      update3DScene();
+      updateSpriteScene();
     }
     function recordScore(level, monsterName) {
       if (level <= 0) return;
@@ -814,6 +830,7 @@
     function animateFallbackAttack(side) {
       const fallback = document.getElementById(side === 'player' ? 'player-model-fallback' : 'rival-model-fallback');
       if (!fallback || fallback.closest('[hidden]')) return;
+      if (window.monsterSpritesAttack) window.monsterSpritesAttack(side);
       const className = side === 'player' ? 'attacking-player' : 'attacking-rival';
       fallback.classList.remove(className);
       void fallback.offsetWidth;
@@ -867,7 +884,6 @@
       const availableMoves = moves.length ? moves : (state.rival.moves || []);
       const move = availableMoves.length ? availableMoves[randomInt(0, availableMoves.length - 1)] : { name:'Quick Strike', power:6, accuracy:85 };
       state.battle.pendingRival = false;
-      if (window.hatch3dAttack) window.hatch3dAttack('rival');
       animateFallbackAttack('rival');
       const hitChance = Math.max(55, Math.min(98, move.accuracy + (state.rival.stats.speed - 6) * 3));
       if (randomInt(1,100) > hitChance) {
@@ -913,7 +929,6 @@
       if (!move) return;
       combatBusy = true;
       state.battle.pendingRival = true;
-      if (window.hatch3dAttack) window.hatch3dAttack('player');
       animateFallbackAttack('player');
       const hitChance = Math.max(55, Math.min(98, move.accuracy + (state.monster.stats.speed - 6) * 3));
       if (randomInt(1,100) > hitChance) {
@@ -947,6 +962,6 @@
     render();
     if (state.phase === 'battle' && state.battle && state.battle.pendingRival) scheduleRivalAttack(500);
   </script>
-  <script src="scripts/hatch-3d.js"></script>
+  <script src="scripts/monster-sprites.js"></script>
 </body>
 </html>
