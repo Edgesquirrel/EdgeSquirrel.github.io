@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#1c3152"/><stop offset=".56" stop-color="#6c93a2"/><stop offset="1" stop-color="#e7b486"/></linearGradient>
+    <linearGradient id="sea" x2="0" y2="1"><stop stop-color="#2a8395"/><stop offset="1" stop-color="#13334a"/></linearGradient>
+    <linearGradient id="cliff" x2="0" y2="1"><stop stop-color="#776d66"/><stop offset="1" stop-color="#343039"/></linearGradient>
+  </defs>
+  <rect width="1200" height="500" fill="url(#sky)"/><circle cx="872" cy="143" r="44" fill="#f7d39b" opacity=".65"/>
+  <path d="M0 282q140-29 278 4t277-1q145-29 289 2t356-3v90H0Z" fill="url(#sea)"/>
+  <path d="M0 314 83 201l78 31 77-110 82 192 70 73H0Zm1200-3-96-111-87 43-86-127-83 229-73 43h425Z" fill="url(#cliff)"/>
+  <path d="M0 330q138-30 275 7t284-3q150-34 293 2t348 1v163H0Z" fill="#35323a"/>
+  <path d="M0 353q183-24 352 8t333-2q174-32 341 1t174-2v51q-196-24-352 8t-334-3q-167-31-333 2t-181-3Z" fill="#557b79" opacity=".55"/>
+  <path d="m124 397 148-17m-112 40 174-18m638-4 163-20m-126 47 155-16" stroke="#e8c79b" stroke-opacity=".32" stroke-width="4"/>
+  <ellipse cx="600" cy="431" rx="475" ry="61" fill="#172633" fill-opacity=".44" stroke="#8cd4d7" stroke-opacity=".7" stroke-width="4"/>
+  <ellipse cx="600" cy="431" rx="365" ry="42" fill="none" stroke="#b8e8d5" stroke-opacity=".46" stroke-width="2" stroke-dasharray="12 12"/>
+  <ellipse cx="350" cy="416" rx="112" ry="31" fill="#263b44" fill-opacity=".4" stroke="#b8e8d5" stroke-opacity=".46" stroke-width="3"/><ellipse cx="850" cy="416" rx="112" ry="31" fill="#263b44" fill-opacity=".4" stroke="#b8e8d5" stroke-opacity=".46" stroke-width="3"/>
+</svg>

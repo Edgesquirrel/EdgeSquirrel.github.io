@@ -155,16 +155,26 @@
     @keyframes spriteHover { 0%,100%{transform:translateY(0) rotate(-.3deg)} 50%{transform:translateY(-4px) rotate(.3deg)} }
     .monster-stage.battle-active { display:block; min-height:0; padding:12px; }
     .stage-battle { display:block; width:100%; margin:0; padding:0; border:0; background:transparent; }
-    .stage-scene { position:relative; min-height:330px; overflow:hidden; border:1px solid rgba(168,139,255,.22); border-radius:16px; background:radial-gradient(ellipse at 50% 25%,rgba(112,75,202,.18),transparent 58%),linear-gradient(180deg,#14131e,#0b0b12); }
+    .stage-scene { position:relative; min-height:350px; overflow:hidden; isolation:isolate; border:1px solid rgba(168,139,255,.26); border-radius:16px; background:#101827 url('/assets/arenas/meadow.svg') center / cover no-repeat; box-shadow:inset 0 0 50px rgba(6,8,17,.36); }
+    .stage-scene[data-arena="meadow"] { background-image:linear-gradient(180deg,rgba(10,16,27,.1),rgba(9,13,20,.2)),url('/assets/arenas/meadow.svg'); }
+    .stage-scene[data-arena="volcano"] { background-image:linear-gradient(180deg,rgba(28,11,15,.08),rgba(15,9,14,.22)),url('/assets/arenas/volcano.svg'); }
+    .stage-scene[data-arena="ice"] { background-image:linear-gradient(180deg,rgba(11,26,43,.06),rgba(9,19,30,.18)),url('/assets/arenas/ice.svg'); }
+    .stage-scene[data-arena="forest"] { background-image:linear-gradient(180deg,rgba(8,15,17,.12),rgba(7,14,13,.22)),url('/assets/arenas/forest.svg'); }
+    .stage-scene[data-arena="coast"] { background-image:linear-gradient(180deg,rgba(12,20,32,.08),rgba(8,18,24,.2)),url('/assets/arenas/coast.svg'); }
+    .stage-scene[data-arena="crystal"] { background-image:linear-gradient(180deg,rgba(17,13,35,.08),rgba(9,13,24,.2)),url('/assets/arenas/crystal.svg'); }
+    .stage-scene::before { position:absolute; z-index:0; inset:0; background:linear-gradient(180deg,rgba(8,10,19,.22) 0%,transparent 35%,transparent 70%,rgba(5,8,13,.25) 100%); content:""; pointer-events:none; }
     .stage-scene canvas { display:block; width:100%; height:330px; }
-    .battle-model-fallback { position:absolute; z-index:1; inset:45px 10px 12px; display:grid; grid-template-columns:1fr 1fr; align-items:end; pointer-events:none; }
+    .battle-model-fallback { position:absolute; z-index:1; inset:0; display:block; pointer-events:none; }
     .battle-model-fallback[hidden] { display:none; }
-    .battle-model-fallback img { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 15px 18px rgba(0,0,0,.52)); transition:filter .18s ease; }
-    .battle-model-fallback img:last-child { transform:scaleX(-1); }
-    .battle-model-fallback img.attacking-player { animation:fallbackPlayerLunge .52s cubic-bezier(.2,.8,.2,1); }
-    .battle-model-fallback img.attacking-rival { animation:fallbackRivalLunge .52s cubic-bezier(.2,.8,.2,1); }
-    @keyframes fallbackPlayerLunge { 45%{transform:translateX(22px) scale(1.04)} }
-    @keyframes fallbackRivalLunge { 45%{transform:translateX(-22px) scaleX(-1) scale(1.04)} }
+    .battle-fighter-spot { position:absolute; top:78px; bottom:24px; display:grid; width:46%; place-items:end center; }
+    .battle-fighter-spot.player-spot { left:1%; }
+    .battle-fighter-spot.rival-spot { right:1%; }
+    .battle-fighter-spot img { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 16px 13px rgba(0,0,0,.48)); transform:scale(var(--sprite-scale,.8)); transform-origin:center bottom; transition:filter .18s ease; }
+    .battle-fighter-spot.rival-spot img { transform:scaleX(-1) scale(var(--sprite-scale,.8)); }
+    .battle-fighter-spot img.attacking-player { animation:fallbackPlayerLunge .52s cubic-bezier(.2,.8,.2,1); }
+    .battle-fighter-spot img.attacking-rival { animation:fallbackRivalLunge .52s cubic-bezier(.2,.8,.2,1); }
+    @keyframes fallbackPlayerLunge { 45%{transform:translateX(22px) scale(var(--sprite-scale,.8))} }
+    @keyframes fallbackRivalLunge { 45%{transform:translateX(-22px) scaleX(-1) scale(var(--sprite-scale,.8))} }
     .stage-hud { position:absolute; z-index:3; inset:12px 12px auto; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:9px; pointer-events:none; }
     .stage-fighter { min-width:0; padding:9px 11px; border:1px solid rgba(255,255,255,.15); border-radius:12px; background:rgba(8,8,14,.82); backdrop-filter:blur(9px); }
     .stage-fighter.enemy { justify-self:end; width:min(100%,250px); }
@@ -259,7 +269,8 @@
       .rival-art svg { width: 70px; height: 65px; }
       .move-controls { grid-template-columns:1fr; }
       .stage-battle .move-controls { grid-template-columns:repeat(3,minmax(0,1fr)); }
-      .stage-scene, .stage-scene canvas { min-height:245px; height:245px; }
+      .stage-scene, .stage-scene canvas { min-height:270px; height:270px; }
+      .battle-fighter-spot { top:72px; bottom:18px; width:47%; }
       .stage-hud { inset:7px 7px auto; gap:5px; }
       .stage-fighter { padding:7px; }
       .stage-fighter.player, .stage-fighter.enemy { width:100%; }
@@ -326,7 +337,7 @@
           </div>
           <section class="battle-screen stage-battle" id="battle-screen" aria-label="Battle arena" hidden>
             <div class="stage-scene">
-              <div class="battle-model-fallback" id="battle-art-fallback" hidden aria-hidden="true"><img id="player-model-fallback" alt=""><img id="rival-model-fallback" alt=""></div>
+              <div class="battle-model-fallback" id="battle-art-fallback" hidden aria-hidden="true"><div class="battle-fighter-spot player-spot"><img id="player-model-fallback" alt=""></div><div class="battle-fighter-spot rival-spot"><img id="rival-model-fallback" alt=""></div></div>
               <div class="effect-flash" id="effect-flash"></div>
               <div class="stage-hud">
                 <div class="stage-fighter player"><div class="fighter-heading"><span id="player-combat-name">Your monster</span><span>YOU</span></div><div class="fighter-type" id="player-element-name">Element</div><div class="fighter-hp-text"><span>Health</span><strong id="player-hp-label">0 / 0</strong></div><div class="hp-track"><div class="hp-fill" id="player-hp-fill"></div></div></div>
@@ -434,6 +445,12 @@
       { id:'ice', name:'Icy Mountain Pass' }, { id:'forest', name:'Haunted Forest' },
       { id:'coast', name:'Coastal Cliffs' }, { id:'crystal', name:'Crystal Cavern' }
     ];
+    const BATTLE_SPRITE_SCALE = {
+      'ember-drake':0.82, 'reef-strider':0.70, 'briar-raptor':0.76, 'rock-golem':0.82,
+      'dawncrest':0.78, 'shadow-spider':0.68, 'frost-wolf':0.88, 'volt-lynx':0.76,
+      'crystal-squirrel':0.62, 'hooded-ghoul':0.66, 'mire-toad':0.58, 'gale-kite':0.72,
+      'metal-serpent':0.78, 'poison-moth':0.64
+    };
     const ELEMENT_ADVANTAGES = {
       Fire:['Grass','Ice','Metal'], Water:['Fire','Earth'], Grass:['Water','Earth'],
       Earth:['Electric','Fire','Poison'], Light:['Dark','Ghost'], Dark:['Psychic'],
@@ -527,7 +544,7 @@
       const id = known ? monster.id : 'ember-drake';
       const kind = action === 'attack' ? 'attack' : 'idle';
       const number = Math.max(1, Number(frame) || 1);
-      return '/' + id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png';
+      return '/' + id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png?v=20261107-3';
     }
     function renderArt() {
       const fallback = document.getElementById('art-fallback');
@@ -544,18 +561,25 @@
       const isBattle = state.phase === 'battleReady' || state.phase === 'battle';
       const battleFallback = document.getElementById('battle-art-fallback');
       battleFallback.hidden = !isBattle;
+      document.querySelector('.stage-scene').dataset.arena = isBattle ? (arena ? arena.id : 'meadow') : 'meadow';
       if (isBattle && state.monster && state.rival) {
         const playerImage = document.getElementById('player-model-fallback');
         const rivalImage = document.getElementById('rival-model-fallback');
-        if (playerImage.dataset.monsterId !== state.monster.id) {
+        if (playerImage.dataset.monsterId !== state.monster.id || !playerImage.getAttribute('src')) {
           playerImage.src = monsterPreviewPath(state.monster);
           playerImage.dataset.monsterId = state.monster.id;
+          playerImage.dataset.spriteFrame = '';
+          playerImage.dataset.spritePending = '';
         }
+        playerImage.style.setProperty('--sprite-scale', String(BATTLE_SPRITE_SCALE[state.monster.id] || 0.78));
         playerImage.alt = state.monster.name;
-        if (rivalImage.dataset.monsterId !== state.rival.id) {
+        if (rivalImage.dataset.monsterId !== state.rival.id || !rivalImage.getAttribute('src')) {
           rivalImage.src = monsterPreviewPath(state.rival);
           rivalImage.dataset.monsterId = state.rival.id;
+          rivalImage.dataset.spriteFrame = '';
+          rivalImage.dataset.spritePending = '';
         }
+        rivalImage.style.setProperty('--sprite-scale', String(BATTLE_SPRITE_SCALE[state.rival.id] || 0.78));
         rivalImage.alt = state.rival.name;
       }
       document.getElementById('monster-stage').dataset.room = isBattle ? (arena ? arena.id : 'meadow') : (state.phase === 'training' ? 'gym' : room.id);
@@ -698,10 +722,10 @@
       if (window.monsterSpritesSetState) window.monsterSpritesSetState(snapshot);
     }
     function render() {
-      renderArt();
       renderStats();
       renderWeekRoadmap();
       renderRival();
+      renderArt();
       renderElementChart();
       renderLeaderboard();
       renderResult();
@@ -960,6 +984,6 @@
     render();
     if (state.phase === 'battle' && state.battle && state.battle.pendingRival) scheduleRivalAttack(500);
   </script>
-  <script src="scripts/monster-sprites.js"></script>
+  <script src="scripts/monster-sprites.js?v=20261107-3"></script>
 </body>
 </html>
