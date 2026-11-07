@@ -1,0 +1,274 @@
+{
+  "fps": {
+    "idle": 6,
+    "attack": 10
+  },
+  "monsters": [
+    {
+      "id": "ember-drake",
+      "name": "Ember Drake",
+      "element": "Fire",
+      "idle": [
+        "ember-drake/idle/frame-01.png",
+        "ember-drake/idle/frame-02.png",
+        "ember-drake/idle/frame-03.png",
+        "ember-drake/idle/frame-04.png"
+      ],
+      "attack": [
+        "ember-drake/attack/frame-01.png",
+        "ember-drake/attack/frame-02.png",
+        "ember-drake/attack/frame-03.png",
+        "ember-drake/attack/frame-04.png",
+        "ember-drake/attack/frame-05.png",
+        "ember-drake/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "reef-strider",
+      "name": "Reef Strider",
+      "element": "Water",
+      "idle": [
+        "reef-strider/idle/frame-01.png",
+        "reef-strider/idle/frame-02.png",
+        "reef-strider/idle/frame-03.png",
+        "reef-strider/idle/frame-04.png"
+      ],
+      "attack": [
+        "reef-strider/attack/frame-01.png",
+        "reef-strider/attack/frame-02.png",
+        "reef-strider/attack/frame-03.png",
+        "reef-strider/attack/frame-04.png",
+        "reef-strider/attack/frame-05.png",
+        "reef-strider/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "briar-raptor",
+      "name": "Briar Raptor",
+      "element": "Grass",
+      "idle": [
+        "briar-raptor/idle/frame-01.png",
+        "briar-raptor/idle/frame-02.png",
+        "briar-raptor/idle/frame-03.png",
+        "briar-raptor/idle/frame-04.png"
+      ],
+      "attack": [
+        "briar-raptor/attack/frame-01.png",
+        "briar-raptor/attack/frame-02.png",
+        "briar-raptor/attack/frame-03.png",
+        "briar-raptor/attack/frame-04.png",
+        "briar-raptor/attack/frame-05.png",
+        "briar-raptor/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "rock-golem",
+      "name": "Rock Golem",
+      "element": "Earth",
+      "idle": [
+        "rock-golem/idle/frame-01.png",
+        "rock-golem/idle/frame-02.png",
+        "rock-golem/idle/frame-03.png",
+        "rock-golem/idle/frame-04.png"
+      ],
+      "attack": [
+        "rock-golem/attack/frame-01.png",
+        "rock-golem/attack/frame-02.png",
+        "rock-golem/attack/frame-03.png",
+        "rock-golem/attack/frame-04.png",
+        "rock-golem/attack/frame-05.png",
+        "rock-golem/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "dawncrest",
+      "name": "Dawncrest",
+      "element": "Light",
+      "idle": [
+        "dawncrest/idle/frame-01.png",
+        "dawncrest/idle/frame-02.png",
+        "dawncrest/idle/frame-03.png",
+        "dawncrest/idle/frame-04.png"
+      ],
+      "attack": [
+        "dawncrest/attack/frame-01.png",
+        "dawncrest/attack/frame-02.png",
+        "dawncrest/attack/frame-03.png",
+        "dawncrest/attack/frame-04.png",
+        "dawncrest/attack/frame-05.png",
+        "dawncrest/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "shadow-spider",
+      "name": "Shadow Spider",
+      "element": "Dark",
+      "idle": [
+        "shadow-spider/idle/frame-01.png",
+        "shadow-spider/idle/frame-02.png",
+        "shadow-spider/idle/frame-03.png",
+        "shadow-spider/idle/frame-04.png"
+      ],
+      "attack": [
+        "shadow-spider/attack/frame-01.png",
+        "shadow-spider/attack/frame-02.png",
+        "shadow-spider/attack/frame-03.png",
+        "shadow-spider/attack/frame-04.png",
+        "shadow-spider/attack/frame-05.png",
+        "shadow-spider/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "frost-wolf",
+      "name": "Frost Wolf",
+      "element": "Ice",
+      "idle": [
+        "frost-wolf/idle/frame-01.png",
+        "frost-wolf/idle/frame-02.png",
+        "frost-wolf/idle/frame-03.png",
+        "frost-wolf/idle/frame-04.png"
+      ],
+      "attack": [
+        "frost-wolf/attack/frame-01.png",
+        "frost-wolf/attack/frame-02.png",
+        "frost-wolf/attack/frame-03.png",
+        "frost-wolf/attack/frame-04.png",
+        "frost-wolf/attack/frame-05.png",
+        "frost-wolf/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "volt-lynx",
+      "name": "Volt Lynx",
+      "element": "Electric",
+      "idle": [
+        "volt-lynx/idle/frame-01.png",
+        "volt-lynx/idle/frame-02.png",
+        "volt-lynx/idle/frame-03.png",
+        "volt-lynx/idle/frame-04.png"
+      ],
+      "attack": [
+        "volt-lynx/attack/frame-01.png",
+        "volt-lynx/attack/frame-02.png",
+        "volt-lynx/attack/frame-03.png",
+        "volt-lynx/attack/frame-04.png",
+        "volt-lynx/attack/frame-05.png",
+        "volt-lynx/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "crystal-squirrel",
+      "name": "Crystal Squirrel",
+      "element": "Psychic (rare)",
+      "idle": [
+        "crystal-squirrel/idle/frame-01.png",
+        "crystal-squirrel/idle/frame-02.png",
+        "crystal-squirrel/idle/frame-03.png",
+        "crystal-squirrel/idle/frame-04.png"
+      ],
+      "attack": [
+        "crystal-squirrel/attack/frame-01.png",
+        "crystal-squirrel/attack/frame-02.png",
+        "crystal-squirrel/attack/frame-03.png",
+        "crystal-squirrel/attack/frame-04.png",
+        "crystal-squirrel/attack/frame-05.png",
+        "crystal-squirrel/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "hooded-ghoul",
+      "name": "Hooded Ghoul",
+      "element": "Ghost",
+      "idle": [
+        "hooded-ghoul/idle/frame-01.png",
+        "hooded-ghoul/idle/frame-02.png",
+        "hooded-ghoul/idle/frame-03.png",
+        "hooded-ghoul/idle/frame-04.png"
+      ],
+      "attack": [
+        "hooded-ghoul/attack/frame-01.png",
+        "hooded-ghoul/attack/frame-02.png",
+        "hooded-ghoul/attack/frame-03.png",
+        "hooded-ghoul/attack/frame-04.png",
+        "hooded-ghoul/attack/frame-05.png",
+        "hooded-ghoul/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "mire-toad",
+      "name": "Mire Toad",
+      "element": "Poison",
+      "idle": [
+        "mire-toad/idle/frame-01.png",
+        "mire-toad/idle/frame-02.png",
+        "mire-toad/idle/frame-03.png",
+        "mire-toad/idle/frame-04.png"
+      ],
+      "attack": [
+        "mire-toad/attack/frame-01.png",
+        "mire-toad/attack/frame-02.png",
+        "mire-toad/attack/frame-03.png",
+        "mire-toad/attack/frame-04.png",
+        "mire-toad/attack/frame-05.png",
+        "mire-toad/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "gale-kite",
+      "name": "Gale Kite",
+      "element": "Air",
+      "idle": [
+        "gale-kite/idle/frame-01.png",
+        "gale-kite/idle/frame-02.png",
+        "gale-kite/idle/frame-03.png",
+        "gale-kite/idle/frame-04.png"
+      ],
+      "attack": [
+        "gale-kite/attack/frame-01.png",
+        "gale-kite/attack/frame-02.png",
+        "gale-kite/attack/frame-03.png",
+        "gale-kite/attack/frame-04.png",
+        "gale-kite/attack/frame-05.png",
+        "gale-kite/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "metal-serpent",
+      "name": "Metal Serpent",
+      "element": "Metal",
+      "idle": [
+        "metal-serpent/idle/frame-01.png",
+        "metal-serpent/idle/frame-02.png",
+        "metal-serpent/idle/frame-03.png",
+        "metal-serpent/idle/frame-04.png"
+      ],
+      "attack": [
+        "metal-serpent/attack/frame-01.png",
+        "metal-serpent/attack/frame-02.png",
+        "metal-serpent/attack/frame-03.png",
+        "metal-serpent/attack/frame-04.png",
+        "metal-serpent/attack/frame-05.png",
+        "metal-serpent/attack/frame-06.png"
+      ]
+    },
+    {
+      "id": "poison-moth",
+      "name": "Poison Moth",
+      "element": "Poison",
+      "idle": [
+        "poison-moth/idle/frame-01.png",
+        "poison-moth/idle/frame-02.png",
+        "poison-moth/idle/frame-03.png",
+        "poison-moth/idle/frame-04.png"
+      ],
+      "attack": [
+        "poison-moth/attack/frame-01.png",
+        "poison-moth/attack/frame-02.png",
+        "poison-moth/attack/frame-03.png",
+        "poison-moth/attack/frame-04.png",
+        "poison-moth/attack/frame-05.png",
+        "poison-moth/attack/frame-06.png"
+      ]
+    }
+  ]
+}
