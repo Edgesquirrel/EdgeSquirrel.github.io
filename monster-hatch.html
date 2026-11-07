@@ -527,7 +527,7 @@
       const id = known ? monster.id : 'ember-drake';
       const kind = action === 'attack' ? 'attack' : 'idle';
       const number = Math.max(1, Number(frame) || 1);
-      return 'monster-animations/' + id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png';
+      return id + '/' + kind + '/frame-' + String(number).padStart(2,'0') + '.png';
     }
     function renderArt() {
       const fallback = document.getElementById('art-fallback');

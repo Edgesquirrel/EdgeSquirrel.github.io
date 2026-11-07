@@ -16,7 +16,7 @@
 
   function pathFor(monster, animation, frame) {
     const safeFrame = String(frame).padStart(2, '0');
-    return 'monster-animations/' + safeId(monster) + '/' + animation + '/frame-' + safeFrame + '.png';
+    return safeId(monster) + '/' + animation + '/frame-' + safeFrame + '.png';
   }
 
   function setFrame(image, monster, animation, frame) {
